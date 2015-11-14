@@ -4,16 +4,16 @@
 #pragma warning(disable:4996)
 
 /*
- * È«¾Ö±äÁ¿ÉùÃ÷
+ * å…¨å±€å˜é‡å£°æ˜
 */
-//ÓÃmap´úÌætableÊ±µÄ·ûºÅ±íºÍ²éÕÒ½á¹ûÉùÃ÷
+//ç”¨mapä»£æ›¿tableæ—¶çš„ç¬¦å·è¡¨å’ŒæŸ¥æ‰¾ç»“æœå£°æ˜
 std::map<std::string, int> symTable;
 std::map<std::string, int>::iterator res;
 
-unsigned int numMax = 10;  //ÔÊĞíµÄÊı×Ö×î´ó³¤¶È
-char ch;     //´ÓÎÄ¼ş¶ÁÈëµÄÒ»¸ö×Ö·û
-int symbol;  //Ò»¸ötokenµÄÊôĞÔ
-long long value;  //Ò»¸ötokenµÄÖµ:Èç¹ûtokenÊÇNUM,ÔòvalÊÇÆäÖµ;Èç¹ûtokenÊÇIDENT,ÔòvalÊÇÆäÔÚ·ûºÅ±íÖĞµÄÎ»ÖÃ
+unsigned int numMax = 10;  //å…è®¸çš„æ•°å­—æœ€å¤§é•¿åº¦
+char ch;     //ä»æ–‡ä»¶è¯»å…¥çš„ä¸€ä¸ªå­—ç¬¦
+int symbol;  //ä¸€ä¸ªtokençš„å±æ€§
+long long value;  //ä¸€ä¸ªtokençš„å€¼:å¦‚æœtokenæ˜¯NUM,åˆ™valæ˜¯å…¶å€¼;å¦‚æœtokenæ˜¯IDENT,åˆ™valæ˜¯å…¶åœ¨ç¬¦å·è¡¨ä¸­çš„ä½ç½®
 std::string ident;
 
 int main()

@@ -19,51 +19,51 @@ int getsym()
 		ident.append(sizeof(char), ch);
 		if (isalpha(ch))
 		{
-			//×ÖÄ¸¿ªÍ·
-			ident.clear();          //Çå³ıÉÏÒ»¸öidentÁôÏÂµÄÄÚÈİ
-			ident.append(sizeof(char), ch);     //½«µ±Ç°×Ö·ûÌí¼ÓÖÁidentÖĞ
+			//å­—æ¯å¼€å¤´
+			ident.clear();          //æ¸…é™¤ä¸Šä¸€ä¸ªidentç•™ä¸‹çš„å†…å®¹
+			ident.append(sizeof(char), ch);     //å°†å½“å‰å­—ç¬¦æ·»åŠ è‡³identä¸­
 			while (isalnum(ch = getchar()))
 			{
-				//Èç¹ûµ±Ç°ÊÇ×ÖÄ¸»òÕßÊı×Ö£¬ÔòÆäÓ¦¸ÃÊÇµ±Ç°±êÊ¶·ûÖĞµÄÒ»²¿·Ö
-				ident.append(sizeof(char), ch);  //½«µ±Ç°×Ö·ûÌí¼ÓÖÁidentÖĞ
+				//å¦‚æœå½“å‰æ˜¯å­—æ¯æˆ–è€…æ•°å­—ï¼Œåˆ™å…¶åº”è¯¥æ˜¯å½“å‰æ ‡è¯†ç¬¦ä¸­çš„ä¸€éƒ¨åˆ†
+				ident.append(sizeof(char), ch);  //å°†å½“å‰å­—ç¬¦æ·»åŠ è‡³identä¸­
 			}
-			//±êÊ¶·û½áÊø
+			//æ ‡è¯†ç¬¦ç»“æŸ
 			ungetc(ch, stdin);
 			res = symTable.find(ident);
 			if (res == symTable.end())
 			{
-				//Ã»ÓĞÕÒµ½µ±Ç°±êÊ¶·û
+				//æ²¡æœ‰æ‰¾åˆ°å½“å‰æ ‡è¯†ç¬¦
 				symTable.insert(std::pair<std::string, int>(ident, IDENT));
 			}
 			else
 			{
 				if (symTable[ident] != IDENT)
 				{
-					printf("ÀàĞÍ²»Æ¥Åä£¡\n");
+					printf("ç±»å‹ä¸åŒ¹é…ï¼\n");
 				}
 			}
 			return IDENT;
 		}
 		else if (isdigit(ch))
 		{
-			//Êı×Ö
+			//æ•°å­—
 			ident.clear();
 			ident.append(sizeof(char), ch);
 			while (isdigit(ch = getchar()))
 			{
-				//±£´æÊıÖµ
+				//ä¿å­˜æ•°å€¼
 				ident.append(sizeof(char), ch);
 			}
 			ungetc(ch, stdin);
 			if (ident.length() > numMax)
 			{
-				//Êı¾İÒç³ö
+				//æ•°æ®æº¢å‡º
 				value = 0;
-				printf("----------------------------\nµ±Ç°Êı×Ö(%s)Òç³ö!\n", ident.c_str());
+				printf("----------------------------\nå½“å‰æ•°å­—(%s)æº¢å‡º!\n", ident.c_str());
 				return ERR;
 			}
 			else {
-				//¼ÆËãÊıÖµ
+				//è®¡ç®—æ•°å€¼
 				value = 0;
 				for (std::string::iterator itr = ident.begin(); itr != ident.end();itr++)
 				{
@@ -74,7 +74,7 @@ int getsym()
 		}
 		else if (isspace(ch))
 		{
-			//Ìø¹ı½ÓÏÂÀ´µÄËùÓĞ¿Õ°×·û
+			//è·³è¿‡æ¥ä¸‹æ¥çš„æ‰€æœ‰ç©ºç™½ç¬¦
 			ident.clear();
 			while (isspace(ch))
 			{
@@ -88,7 +88,7 @@ int getsym()
 		}
 		else
 		{
-			//µ÷µ½ÏÂÒ»¸ö±êÊ¶·û»òÕßÊı×Ö¿ªÊ¼µÄÎ»ÖÃ
+			//è°ƒåˆ°ä¸‹ä¸€ä¸ªæ ‡è¯†ç¬¦æˆ–è€…æ•°å­—å¼€å§‹çš„ä½ç½®
 			while (!isalnum(ch) && ch != EOF)
 			{
 				ch = getchar();

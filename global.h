@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
-//µ±Ç°²âÊÔ·½±ã£¬ÓÃmap´úÌæ·ûºÅ±í
+//å½“å‰æµ‹è¯•æ–¹ä¾¿ï¼Œç”¨mapä»£æ›¿ç¬¦å·è¡¨
 #include <map>
 
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-//½á¹¹ºÍÃ¶¾ÙÉùÃ÷
+//ç»“æ„å’Œæšä¸¾å£°æ˜
 typedef enum MyEnum
 {
 	NUM = 256, IDENT, PLUS, MINUS, TIMES, SLASH, BEGIN, NUL, ERR
@@ -19,6 +19,6 @@ typedef struct table_t
 	int val;
 } table;
 
-//º¯ÊıÉùÃ÷
+//å‡½æ•°å£°æ˜
 int getsym();
 #endif
