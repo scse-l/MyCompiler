@@ -7,10 +7,16 @@
 #define GLOBAL_H
 
 //结构和枚举声明
-typedef enum MyEnum
+enum MyEnum
 {
-	NUM = 256, IDENT, PLUS, MINUS, TIMES, SLASH, BEGIN, NUL, ERR
-} symEnum;
+	NUM = 256, IDENT, NUL, ERR,
+	//保留字集
+	BEGIN, END, FOR, PRO, FUN, DO, WHILE, VAR, ELSE, INT, CHAR, ARRAY, 
+	CONST, IF, THEN, READ, WRITE, TO, DOWNTO,
+	//符号集
+	PLUS, MINUS, TIMES, SLASH, COMMA, SEMICOLON,LPARENT,RPARENT,EQL,NEQ,
+	PERIOD, LESS, LEQ, GREATER, GEQ, BECOMES, COLON
+};
 
 typedef struct table_t
 {
@@ -20,5 +26,5 @@ typedef struct table_t
 } table;
 
 //函数声明
-int getsym();
+int lex();				//词法分析函数
 #endif
