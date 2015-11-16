@@ -19,7 +19,6 @@ int lex()
 {
 	while (true)
 	{
-		//ch = getchar();
 		//跳过所有空白符
 		while (isspace(ch))
 		{
@@ -29,8 +28,6 @@ int lex()
 			}
 			ch = getchar();
 		}
-		//ident.clear();
-		//ident.append(sizeof(char), ch);
 		if (isalpha(ch))
 		{
 			//字母开头
@@ -47,7 +44,8 @@ int lex()
 			{
 				//当前标识符是保留字
 				print("Keyword", "Name", ident.c_str());
-				return keywordTable[ident];
+				//此处不return是为了避免保留字的Char和字符(如'a')冲突
+				continue;
 			}
 			return IDENT;
 		}
@@ -114,6 +112,53 @@ int lex()
 				print("Sign", "Name", "GREATER");
 				return GREATER;
 			}
+		}
+		else if (match('\''))
+		{
+			//字符处理
+			ident.clear();
+			while (isalnum(ch))
+			{
+				ident.append(sizeof(char), ch);
+				ch = getchar();
+			}
+			if (!match('\''))
+			{
+				error("The Single Quotes don't match");
+				//需要错误恢复吗？
+			}
+			if (ident.length() > 1)
+			{
+				error("There are too many characters in single quotes");
+				ident.clear();
+			}
+			return CHAR;
+		}
+		else if (match('"'))
+		{
+			ident.clear();
+			while (ch == 32 || ch == 33 || 35 <= ch && ch <= 126)
+			{
+				//引号内的字符
+				ident.append(sizeof(char), ch);
+				ch = getchar();
+			}
+			if (!match('"'))
+			{
+				//在字符串内出现了非法字符
+				error("There is an illegal character in the string");
+				ident.clear();
+				while (!match('"'))
+				{
+					ch = getchar();
+					if (ch == EOF)
+					{
+						error("The Quotes don't match");
+						return EOF;
+					}
+				}
+			}
+			return STRING;
 		}
 		else if (ch == EOF)
 		{

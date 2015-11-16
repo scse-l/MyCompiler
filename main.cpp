@@ -27,7 +27,7 @@ void init();
 int main()
 {
 
-	freopen("in.txt", "r", stdin);
+	freopen("in_py.txt", "r", stdin);
 	freopen("out.txt", "w", stdout);
 
 	init();
@@ -42,6 +42,14 @@ int main()
 		else if(symbol == NUM)
 		{
 			printf("Type:Number\tVallue:%d\n", value);
+		}
+		else if (symbol == STRING)
+		{
+			print("String", "Value", ident);
+		}
+		else if (symbol == CHAR)
+		{
+			print("Char", "Value", ident);
 		}
 		else if(symbol == NUL)
 		{
@@ -75,6 +83,7 @@ void init()
 	keywordTable.insert(std::pair<std::string, int>("then", THEN));
 	keywordTable.insert(std::pair<std::string, int>("read", READ));
 	keywordTable.insert(std::pair<std::string, int>("write", WRITE));
+	keywordTable.insert(std::pair<std::string, int>("of", OF));
 
 	//符号集
 	keywordTable.insert(std::pair<std::string, int>("+", PLUS));
@@ -90,5 +99,9 @@ void init()
 	keywordTable.insert(std::pair<std::string, int>("<", LESS));
 	keywordTable.insert(std::pair<std::string, int>(">", GREATER));
 	keywordTable.insert(std::pair<std::string, int>(":", COLON));
+	keywordTable.insert(std::pair<std::string, int>("'", SGLQUT));
+	keywordTable.insert(std::pair<std::string, int>("\"", QUT));
+	keywordTable.insert(std::pair<std::string, int>("[", LBRACKET));
+	keywordTable.insert(std::pair<std::string, int>("]", RBRACKET));
 }
 
