@@ -11,5 +11,6 @@
 void print(std::string type, std::string attr, std::string value);
 //检测字符是否匹配
 bool match(char target);
-
+//错误报告
+void error(std::string msg);
 #endif

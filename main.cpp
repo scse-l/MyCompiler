@@ -1,7 +1,8 @@
 #include <iostream>
 #include <map>
-#include "global.h"
-#include "support.h"
+#include "global.h"        //结构和枚举声明
+#include "support.h"       //辅助函数
+#include "lex.h"           //词法分析函数
 
 #pragma warning(disable:4996)
 
@@ -14,14 +15,14 @@ std::map<std::string, int> symTable;
 std::map<std::string, int>::iterator res;
 
 unsigned int numMax = 10;  //允许的数字最大长度
-char ch;     //从文件读入的一个字符
-int symbol;  //一个token的属性
-long long value;  //一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
-std::string ident;
+int lineNo = 1;            //当前行号
+char ch = 0;               //从文件读入的一个字符
+int symbol = 0;            //一个token的属性
+long long value = 0;       //一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
+std::string ident;         //存储当前字符串
 
 //初始化过程
 void init();
-
 
 int main()
 {
@@ -44,7 +45,7 @@ int main()
 		}
 		else if(symbol == NUL)
 		{
-			printf("--------------------------\nWrong Type:%s\n------------------------\n",ident.c_str());
+			error("Unknown Character: " + ident);
 		}
 	}
 	printf("File Complete!\n");

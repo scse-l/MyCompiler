@@ -25,6 +25,4 @@ typedef struct table_t
 	int val;
 } table;
 
-//函数声明
-int lex();				//词法分析函数
 #endif

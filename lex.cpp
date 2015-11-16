@@ -1,15 +1,18 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <limits>
 #include "global.h"
 #include "support.h"
+
+#pragma warning(disable:4996)
 
 extern unsigned int numMax;
 extern char ch;
 extern long long value;
 extern std::string ident;
+extern int lineNo;
 extern std::map<std::string, int> keywordTable;
-extern std::map<std::string, int> symTable;
 extern std::map<std::string, int>::iterator res;
 
 int lex()
@@ -20,6 +23,10 @@ int lex()
 		//跳过所有空白符
 		while (isspace(ch))
 		{
+			if (ch == '\n')
+			{
+				lineNo++;
+			}
 			ch = getchar();
 		}
 		//ident.clear();
@@ -47,28 +54,13 @@ int lex()
 		else if (isdigit(ch))
 		{
 			//数字
-			ident.clear();
-			ident.append(sizeof(char), ch);
-			while (isdigit(ch = getchar()))
+			ungetc(ch, stdin);
+			scanf("%d", &value);
+			scanf("%c", &ch);
+			if (value > INT_MAX)
 			{
-				//保存数值
-				ident.append(sizeof(char), ch);
-			}
-			
-			if (ident.length() > numMax)
-			{
-				//数据溢出
 				value = 0;
-				printf("----------------------------\n当前数字(%s)溢出!\n", ident.c_str());
-				return NUM;
-			}
-			else {
-				//计算数值
-				value = 0;
-				for (std::string::iterator itr = ident.begin(); itr != ident.end();itr++)
-				{
-					value = value * 10 + (*itr - '0');
-				}
+				error("The Number Is Too Big!");
 			}
 			return NUM;
 		}
