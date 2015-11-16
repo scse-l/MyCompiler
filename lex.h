@@ -1,6 +1,6 @@
 #pragma once
 /*
-	´Ê·¨·ÖÎöº¯ÊýµÄÉùÃ÷
+	è¯æ³•åˆ†æžå‡½æ•°çš„å£°æ˜Ž
 */
 
-int lex();                  //´Ê·¨·ÖÎöº¯Êý
+int lex();                  //è¯æ³•åˆ†æžå‡½æ•°
