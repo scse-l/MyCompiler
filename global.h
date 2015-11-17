@@ -20,7 +20,6 @@ enum MyEnum
 
 typedef struct table_t
 {
-	std::string name;
 	int type;
 	int val;
 } table;
