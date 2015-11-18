@@ -3,6 +3,7 @@
 #include "global.h"        //结构和枚举声明
 #include "support.h"       //辅助函数
 #include "lex.h"           //词法分析函数
+#include "program.h"
 
 #pragma warning(disable:4996)
 
@@ -28,34 +29,20 @@ int main()
 {
 
 	freopen("in_py.txt", "r", stdin);
-	freopen("out.txt", "w", stdout);
+//	freopen("out.txt", "w", stdout);
 
+	//初始化
 	init();
-	ch = getchar();
+	//<程序>::=<分程序>.
 	while (symbol != EOF)
 	{
-		symbol = lex();
-		if (symbol == IDENT)
+		program();
+		if (!match(PERIOD))
 		{
-			printf("Type:Identifier\tName:%s\n", ident.c_str());
+			error("Program is not completed");
+			recovery(1, EOF);
 		}
-		else if(symbol == NUM)
-		{
-			printf("Type:Number\tVallue:%d\n", value);
-		}
-		else if (symbol == STRING)
-		{
-			print("String", "Value", ident);
-		}
-		else if (symbol == CHAR)
-		{
-			print("Char", "Value", ident);
-		}
-		else if(symbol == NUL)
-		{
-			error("Unknown Character: " + ident);
-		}
-	}
+	}	
 	printf("File Complete!\n");
 	return 0;
 }
@@ -103,5 +90,10 @@ void init()
 	keywordTable.insert(std::pair<std::string, int>("\"", QUT));
 	keywordTable.insert(std::pair<std::string, int>("[", LBRACKET));
 	keywordTable.insert(std::pair<std::string, int>("]", RBRACKET));
+
+	//变量初始化
+	ch = getchar();
+	symbol = lex();
+
 }
 

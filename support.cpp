@@ -5,16 +5,31 @@
 #include <string>
 #include <cstdarg>
 #include <set>
+#include "global.h"
 #include "lex.h"
 
 extern char ch;
 extern int lineNo;
 extern int symbol;
+extern std::string ident;
+extern long long value;
 
 //输出相关信息的函数
 void print(std::string type, std::string attr, std::string value)
 {
 	printf("Type:%s\t%s:%s\n", type.c_str(), attr.c_str(), value.c_str());
+}
+void print(int type)
+{
+	switch (type)
+	{
+		case NUM:printf("Type:Number\tValue:%d\n", value); break;
+		case IDENT:printf("Type:Ident\tName:%s\n", ident.c_str()); break;
+		case CH:printf("Type:CHAR\tValue:%s\n", ident.c_str()); break;
+		default:
+			break;
+	}
+	
 }
 //检测字符是否匹配
 bool match(char target)
@@ -34,6 +49,7 @@ bool match(int type)
 {
 	if (symbol == type)
 	{
+		print(type);
 		symbol = lex();
 		return true;
 	}
@@ -68,6 +84,12 @@ void recovery(int n, ...)
 	va_end(ap);
 	while (symSet.find(symbol) == symSet.end())
 	{
+		if (symbol == EOF)
+		{
+			//在错误恢复时遇到文件末尾
+			error("File is incompleted");
+			exit(1);
+		}
 		//不是错误恢复集合中的token
 		symbol = lex();
 	}

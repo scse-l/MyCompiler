@@ -44,8 +44,7 @@ int lex()
 			{
 				//当前标识符是保留字
 				print("Keyword", "Name", ident.c_str());
-				//此处不return是为了避免保留字的Char和字符(如'a')冲突
-				continue;
+				return res->second;
 			}
 			return IDENT;
 		}
@@ -132,7 +131,7 @@ int lex()
 				error("There are too many characters in single quotes");
 				ident.clear();
 			}
-			return CHAR;
+			return CH;
 		}
 		else if (match('"'))
 		{

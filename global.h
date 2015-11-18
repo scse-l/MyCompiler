@@ -9,7 +9,9 @@
 //结构和枚举声明
 enum MyEnum
 {
-	NUM = 256, IDENT, NUL, ERR,
+	//类型说明
+	//CH为字符类型，与CHAR保留字区分
+	NUM = 256, IDENT, NUL, ERR, CH,
 	//保留字集
 	BEGIN, END, FOR, PRO, FUN, DO, WHILE, VAR, ELSE, INT, CHAR, ARRAY, 
 	CONST, IF, THEN, READ, WRITE, TO, DOWNTO,STRING, OF,
