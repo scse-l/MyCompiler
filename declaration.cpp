@@ -35,11 +35,11 @@ int constdecl()
 		{
 			error("Syntax Error: Neither a semicolon nor a comma");
 			//错误恢复
-			while (!match(SEMICOLON))
+			recovery(6, IDENT, SEMICOLON, VAR, PRO, FUN, BEGIN);
+			if (symbol == IDENT)
 			{
-				symbol = lex();
+				constdef();
 			}
-			return 1;
 		}
 	}
 	return 0;
@@ -69,10 +69,7 @@ int constdef()
 		{
 			error("Const Declaration Error");
 			//错误恢复
-			while (!match(COMMA) && !match(SEMICOLON))
-			{
-				symbol = lex();
-			}
+			recovery(2, COMMA, SEMICOLON);
 			return 1;
 		}
 	}
@@ -80,10 +77,7 @@ int constdef()
 	{
 		error("Const Declaration Error");
 		//错误恢复
-		while (!match(COMMA) && !match(SEMICOLON))
-		{
-			symbol = lex();
-		}
+		recovery(2, COMMA, SEMICOLON);
 		return 1;
 	}
 	return 0;
@@ -115,8 +109,7 @@ int vardef()
 		if (!match(IDENT))
 		{
 			error("Var Declaration Error");
-			//错误恢复：跳至冒号或者分号
-			recovery(2, COLON, SEMICOLON);
+			recovery(2, COLON, COMMA);
 			break;
 		}
 	}
@@ -130,8 +123,7 @@ int vardef()
 				{
 					//没有分号
 					error("Var Declaration Error");
-					//错误恢复：跳至分号
-					recovery(1, SEMICOLON);
+					recovery(2, SEMICOLON, IDENT);
 					match(SEMICOLON);
 				}
 			}
@@ -146,7 +138,7 @@ int vardef()
 						//没有分号
 						error("Array Declaration Error");
 						//错误恢复：跳至分号
-						recovery(1, SEMICOLON);
+						recovery(2, SEMICOLON, IDENT);
 						match(SEMICOLON);
 					}
 				}
@@ -154,7 +146,7 @@ int vardef()
 				{
 					error("Array Declaration Error");
 					//错误恢复：跳至分号
-					recovery(1, SEMICOLON);
+					recovery(2, SEMICOLON, IDENT);
 					match(SEMICOLON);
 					return 1;
 				}
@@ -164,10 +156,8 @@ int vardef()
 				//类型错误
 				error("Unknown Var Type");
 				//错误恢复：跳至分号
-				while (!match(SEMICOLON))
-				{
-					symbol = lex();
-				}
+				recovery(2, SEMICOLON, IDENT);
+				match(SEMICOLON);
 				return 1;
 			}
 	}
@@ -176,7 +166,7 @@ int vardef()
 		//没有冒号
 		error("Var Declaration Error");
 		//错误恢复：跳至分号
-		recovery(1, SEMICOLON);
+		recovery(2, SEMICOLON, IDENT);
 		match(SEMICOLON);
 	}
 	return 0;
@@ -194,7 +184,7 @@ int prodecl()
 		program();					//分程序语法分析函数
 		if (!match(SEMICOLON))
 		{
-			error("No Semicolon After Procedure");
+			error("Missing Semicolon After Procedure");
 			recovery(3, PRO, FUN, BEGIN);
 		}
 	}
@@ -209,14 +199,12 @@ int prohead()
 	if (!match(IDENT))
 	{
 		error("Procedure declaration error");
-		//错误恢复：跳至
-		recovery(1, SEMICOLON);
+		recovery(7, SEMICOLON, LPARENT, CONST, VAR, PRO, FUN, BEGIN);
 	}
 	arglist();
 	if (!match(SEMICOLON))
 	{
-		error("No Semicolon");
-		//错误恢复：跳至分号
+		error("Missing Semicolon");
 		recovery(5, CONST,VAR,PRO,FUN,BEGIN);
 	}
 	return 0;
@@ -238,9 +226,9 @@ int arglist()
 		//形式参数段均分析完毕
 		if (!match(RPARENT))
 		{
-			error("No Right Parent");
+			error("Missing Right Parent");
 			//错误恢复：
-			recovery(1, SEMICOLON);
+			recovery(6, SEMICOLON, VAR, CONST, PRO, FUN, BEGIN);
 			match(SEMICOLON);
 			return 1;
 		}
@@ -257,7 +245,7 @@ int args()
 	{
 		error("Wrong Args");
 		//错误恢复
-		recovery(2, COMMA, COLON);
+		recovery(4, COMMA, COLON, SEMICOLON, RPARENT);
 	}
 	while (match(COMMA))
 	{
@@ -265,7 +253,7 @@ int args()
 		{
 			error("Not a identifier");
 			//错误恢复
-			recovery(2, COMMA, COLON);
+			recovery(4, COMMA, COLON, SEMICOLON, RPARENT);
 		}
 	}
 	if (match(COLON))
@@ -289,7 +277,7 @@ int args()
 	}
 	else
 	{
-		error("No Colon Found");
+		error("Missing Colon");
 		//错误恢复：跳至分号或者右括号
 		recovery(2, SEMICOLON, RPARENT);
 		return 1;
@@ -305,10 +293,10 @@ int fundecl()
 		printf("----------------FUNCTION DECLARATION BEGINS--------------\n");
 		//函数声明开始
 		funhead();
-		program();
+		program();	
 		if (!match(SEMICOLON))
 		{
-			error("No Semicolon Found After Function");
+			error("Missing Semicolon After Function");
 			recovery(2, FUN, BEGIN);
 		}
 	}
@@ -323,25 +311,25 @@ int funhead()
 	if (!match(IDENT))
 	{
 		error("Function Declaration Error");
-		recovery(2, COLON, SEMICOLON);
+		recovery(8, COLON, SEMICOLON, LPARENT, VAR, CONST, FUN, PRO, BEGIN);
 	}
 	arglist();
 	if (!match(COLON))
 	{
-		error("No Colon Found After Args");
-		recovery(3, INT, CHAR, SEMICOLON);
+		error("Missing Colon After Args");
+		recovery(8, INT, CHAR, SEMICOLON, VAR, CONST, PRO, FUN, BEGIN);
 	}
 	if (!match(INT))
 	{
 		if (!match(CHAR))
 		{
-			error("No Return Type Found");
-			recovery(1, SEMICOLON);
+			error("Missing Return Type");
+			recovery(6, SEMICOLON, CONST, VAR, FUN, PRO, BEGIN);
 		}
 	}
 	if (!match(SEMICOLON))
 	{
-		error("No Semicolon After Function Head");
+		error("Missing Semicolon After Function Head");
 		recovery(5,CONST, VAR, PRO, FUN, BEGIN);
 	}
 	return 0;
