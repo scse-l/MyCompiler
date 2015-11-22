@@ -1,9 +1,11 @@
 #include <iostream>
 #include <map>
+#include <vector>
 #include "global.h"        //结构和枚举声明
 #include "support.h"       //辅助函数
 #include "lex.h"           //词法分析函数
 #include "program.h"
+#include "express.h"
 
 #pragma warning(disable:4996)
 
@@ -14,16 +16,19 @@
 std::map<std::string, int> keywordTable;
 std::map<std::string, int> symTable;
 std::map<std::string, int>::iterator res;
+std::vector<std::string> errorMsg;
 
-unsigned int numMax = 10;  //允许的数字最大长度
-int lineNo = 1;            //当前行号
-char ch = 0;               //从文件读入的一个字符
-int symbol = 0;            //一个token的属性
-long long value = 0;       //一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
-std::string ident;         //存储当前字符串
+unsigned int errorCount = 0;			//错误总数
+unsigned int numMax = 10;	//允许的数字最大长度
+int lineNo = 1;				//当前行号
+char ch = 0;				//从文件读入的一个字符
+int symbol = 0;				//一个token的属性
+long long value = 0;		//一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
+std::string ident;			//存储当前字符串
 
 //初始化过程
 void init();
+
 
 int main()
 {
@@ -33,16 +38,22 @@ int main()
 
 	//初始化
 	init();
+
 	//<程序>::=<分程序>.
 	while (symbol != EOF)
 	{
 		program();
 		if (!match(PERIOD))
 		{
-			error("Program is not completed");
+			error("Missing Period!Program is not completed");
 			recovery(1, EOF);
 		}
 	}	
+	if (errorCount != 0)
+	{
+		printf("%d error found!\n", errorCount);
+		errorRep();
+	}
 	printf("File Complete!\n");
 	return 0;
 }

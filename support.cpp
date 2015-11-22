@@ -5,14 +5,19 @@
 #include <string>
 #include <cstdarg>
 #include <set>
+#include <vector>
 #include "global.h"
 #include "lex.h"
+
+#pragma warning(disable:4996)
 
 extern char ch;
 extern int lineNo;
 extern int symbol;
 extern std::string ident;
 extern long long value;
+extern unsigned int errorCount;
+extern std::vector<std::string> errorMsg;
 
 //输出相关信息的函数
 void print(std::string type, std::string attr, std::string value)
@@ -59,10 +64,24 @@ bool match(int type)
 	}
 }
 
-//错误报告
+//记录错误信息
 void error(std::string msg)
 {
-	printf(">>>>>>>>>>>>>>>>>>>>>>>>\n\tError: line %d\t\n\tError message: %s\n>>>>>>>>>>>>>>>>>>>>>>>>\n", lineNo, msg.c_str());
+	errorCount++;
+	char _message[10];
+	char* message = itoa(lineNo, _message, 10);
+	std::string s = message;
+	msg = ">>>>>>  line " + s + "   " + msg;
+	errorMsg.push_back(msg);
+}
+
+//输出错误信息
+void errorRep()
+{
+	for (std::vector<std::string>::iterator i = errorMsg.begin(); i != errorMsg.end(); i++)
+	{
+		std::cout << *i << std::endl;
+	}
 }
 
 /*

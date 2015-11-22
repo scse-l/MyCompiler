@@ -27,10 +27,15 @@ int statement()
 			//赋值语句
 			stat_assign();
 		}
-		else
+		else if (symbol == LPARENT || symbol == SEMICOLON)
 		{
 			//过程调用语句
 			stat_procedure();
+		}
+		else
+		{
+			error("Unknown Statement!");
+			recovery(2, SEMICOLON, END);
 		}
 	}
 	else if (symbol == IF)
@@ -115,11 +120,36 @@ int stat_assign()
 }
 
 //过程调用语句
+//<过程调用语句>::=<标识符>[<实在参数表>]
 int stat_procedure()
 {
 	printf("-------------------Procedure Call-----------\n");
-	recovery(2, END, SEMICOLON);
+	if (symbol == LPARENT)
+	{
+		//参数表
+		arg_list();
+	}
 	printf("----------------End of Procedure Call---------\n");
+	return 0;
+}
+
+//实在参数表
+//<实在参数表>::='('<实在参数>{,<实在参数>}')'
+int arg_list()
+{
+	match(LPARENT);
+	express();
+	while (match(COMMA))
+	{
+		//实在参数
+		//<实在参数>::=<表达式>
+		express();
+	}
+	if (!match(RPARENT))
+	{
+		error("Missing Right Parent");
+		recovery(3, RPARENT, SEMICOLON, END);
+	}
 	return 0;
 }
 

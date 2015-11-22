@@ -13,8 +13,10 @@ void print(std::string type, std::string attr, std::string value);
 bool match(char target);
 //检测token类型是否匹配
 bool match(int type);
-//错误报告
+//记录错误信息
 void error(std::string msg);
+//输出错误信息
+void errorRep();
 //错误恢复函数
 void recovery(int n, ...);
 #endif

@@ -51,7 +51,7 @@ int constdef()
 {
 	if (match(IDENT) && match(EQL))
 	{
-		if (match(CHAR))
+		if (match(CH))
 		{
 			//<标识符>＝<字符>
 

@@ -11,5 +11,6 @@ int stat_do();					//当循环语句
 int stat_if();					//条件语句
 int condition();				//条件
 int stat_procedure();			//过程调用语句
+int arg_list();					//实在参数表
 int stat_write();				//写语句
 int stat_read();				//读语句
