@@ -13,47 +13,43 @@
  * 全局变量声明
 */
 //用map代替table时的符号表和查找结果声明
-std::map<std::string, int> keywordTable;
-std::map<std::string, int> symTable;
-std::map<std::string, int>::iterator res;
-std::vector<std::string> errorMsg;
+std::map<std::string, int> keywordTable;			//保留字表
+std::map<std::string, table> symTable;				//符号表
+std::vector<std::string> errorMsg;					//错误记录		
 
 unsigned int errorCount = 0;			//错误总数
-unsigned int numMax = 10;	//允许的数字最大长度
-int lineNo = 1;				//当前行号
-char ch = 0;				//从文件读入的一个字符
-int symbol = 0;				//一个token的属性
-long long value = 0;		//一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
-std::string ident;			//存储当前字符串
+unsigned int numMax = 10;				//允许的数字最大长度
+int lineNo = 1;							//当前行号
+char ch = 0;							//从文件读入的一个字符
+int symbol = 0;							//一个token的属性
+long long value = 0;					//一个token的值:如果token是NUM,则val是其值;如果token是IDENT,则val是其在符号表中的位置
+std::string ident;						//存储当前字符串
 
-//初始化过程
-void init();
-
+void init();						//初始化过程
+int syntax();						//语法分析程序
+int sematic();						//语义分析程序
 
 int main()
 {
 
 	freopen("in_py.txt", "r", stdin);
-//	freopen("out.txt", "w", stdout);
+	freopen("out.txt", "w", stdout);
 
 	//初始化
 	init();
+	//语法分析程序
+	syntax();
 
-	//<程序>::=<分程序>.
-	while (symbol != EOF)
-	{
-		program();
-		if (!match(PERIOD))
-		{
-			error("Missing Period!Program is not completed");
-			recovery(1, EOF);
-		}
-	}	
 	if (errorCount != 0)
 	{
 		printf("%d error found!\n", errorCount);
 		errorRep();
+		return 0;
 	}
+
+	//语义分析程序
+	sematic();
+
 	printf("File Complete!\n");
 	return 0;
 }
@@ -108,3 +104,25 @@ void init()
 
 }
 
+//语法分析程序
+int syntax()
+{
+	//<程序>::=<分程序>.
+	while (symbol != EOF)
+	{
+		program();
+		if (!match(PERIOD))
+		{
+			error("Missing Period!Program is not completed");
+			recovery(1, EOF);
+		}
+	}
+	return 0;
+}
+
+int sematic()
+{
+
+	return 0;
+
+}

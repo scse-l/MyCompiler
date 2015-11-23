@@ -11,7 +11,6 @@
 
 extern int symbol;
 extern std::string ident;
-extern std::map<std::string, int> symTable;
 
 //常量声明
 //<常量说明部分>::=const<常量定义>{,<常量定义>};
@@ -42,6 +41,7 @@ int constdecl()
 			}
 		}
 	}
+	printf("----------------CONST DECLARATION END--------------\n");
 	return 0;
 }
 
@@ -98,6 +98,7 @@ int vardecl()
 	{
 		vardef();
 	}
+	printf("----------------VAR DECLARATION END--------------\n");
 	return 0;
 }
 
@@ -188,6 +189,7 @@ int prodecl()
 			recovery(3, PRO, FUN, BEGIN);
 		}
 	}
+	printf("----------------ALL PROCEDURE DECLARATION END--------------\n");
 	return 0;
 }
 
@@ -300,6 +302,7 @@ int fundecl()
 			recovery(2, FUN, BEGIN);
 		}
 	}
+	printf("----------------ALL FUNCTION DECLARATION END--------------\n");
 	return 0;
 }
 

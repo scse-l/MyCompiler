@@ -13,10 +13,10 @@ extern long long value;
 extern std::string ident;
 extern int lineNo;
 extern std::map<std::string, int> keywordTable;
-extern std::map<std::string, int>::iterator res;
 
 int lex()
 {
+	std::map<std::string, int>::iterator res;
 	while (true)
 	{
 		//跳过所有空白符

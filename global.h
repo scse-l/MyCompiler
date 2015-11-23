@@ -23,7 +23,8 @@ enum MyEnum
 typedef struct table_t
 {
 	int type;
-	int val;
+	int attribute;
+	void *addr;
 } table;
 
 #endif
