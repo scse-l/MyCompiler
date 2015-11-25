@@ -36,11 +36,13 @@ void print(int type)
 	}
 	
 }
+
 //检测字符是否匹配
 bool match(char target)
 {
 	if (ch == target)
 	{
+		ident.append(sizeof(char), ch);
 		ch = getchar();
 		return true;
 	}
@@ -49,7 +51,9 @@ bool match(char target)
 		return false;
 	}
 }
+
 //检查类型是否匹配
+
 bool match(int type)
 {
 	if (symbol == type)
@@ -62,6 +66,24 @@ bool match(int type)
 	{
 		return false;
 	}
+}
+
+
+//检测token类型是否匹配，是则生成语法树的节点并将其加入父节点的子节点集合中
+bool match(int type, AST_node parent)
+{
+	if (symbol == type)
+	{
+		print(type);
+		AST_node t = makeNode(TERMINAL, (LexType)type, parent);
+		symbol = lex();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
 }
 
 //记录错误信息
@@ -114,3 +136,134 @@ void recovery(int n, ...)
 	}
 	return;
 }
+
+
+/*
+	语法树相关操作
+*/
+AST_node makeNode(ASTType ast_type, AST_node parent)
+{
+	AST_node t = (AST_node)malloc(sizeof(AST_t));
+	t->ast_type = ast_type;
+	t->parent = parent;
+	t->lineNo = lineNo;
+	t->children = new std::vector<AST_node>;
+	t->val.ident = new std::string(ident);
+	t->tableItem = NULL;
+	if(parent != NULL)
+		parent->children->push_back(t);
+	return t;
+}
+
+AST_node makeNode(ASTType ast_type, LexType symbol, AST_node parent)
+{
+	AST_node t = (AST_node)malloc(sizeof(AST_t));
+	t->ast_type = ast_type;
+	t->parent = parent;
+	t->lex_symbol = symbol;
+	t->tableItem = NULL;
+	if (symbol == NUM)
+	{
+		t->val.value = value;
+	}
+	else
+	{
+		t->val.ident = new std::string(ident);
+	}
+	t->children = new std::vector<AST_node>;
+	t->lineNo = lineNo;
+	if(parent != NULL)
+		parent->children->push_back(t);
+	return t;
+}
+
+void printAST(AST_node root, int lev)
+{
+	std::string *space = new std::string(lev, '\t');
+	if (root != NULL)
+	{
+		switch (root->ast_type)
+		{
+		case TERMINAL:		
+			std::cout << *space << "Terminal\t" << root->lex_symbol << "\t";
+			if (root->lex_symbol == NUM)
+			{
+				std::cout << root->val.value << std::endl;
+			}
+			else
+			{
+				std::cout << *(root->val.ident) << std::endl;
+			}
+			break;
+		case CONSTDECL:
+			std::cout << *space << "ConstDecl" << std::endl;
+			break;
+		case PROGRAM:
+			std::cout << *space << "Program" << std::endl;
+			break;
+		case CONSTDEF:
+			std::cout << *space << "ConstDef" << std::endl;
+			break;
+		case CONST:
+			std::cout << *space << "Const" << std::endl;
+			break;
+		case VAR:
+			std::cout << *space << "VAR" << std::endl;
+			break;
+		case VARDECL:
+			std::cout << *space << "VarDecl" << std::endl;
+			break;
+		case VARDEF:
+			std::cout << *space << "VarDef" << std::endl;
+			break;
+		case PRODECL:
+			std::cout << *space << "Procedure Declaration" << std::endl;
+			break;
+		case PROHEAD:
+			std::cout << *space << "Procedure Head Declaration" << std::endl;
+			break;
+		case FUNDECL:
+			std::cout << *space << "Function Declaration" << std::endl;
+			break;
+		case FUNHEAD:
+			std::cout << *space << "Function Head Declaration" << std::endl;
+			break;
+		case ARGLIST:
+			std::cout << *space << "Arglist" << std::endl;
+			break;
+		case ARGS:
+			std::cout << *space << "Args" << std::endl;
+			break;
+		case EXPRESSION:
+			std::cout << *space << "Expression" << std::endl;
+			break;
+		case CONDITION:
+			std::cout << *space << "Condition" << std::endl;
+			break;
+		case TERM:
+			std::cout << *space << "Term" << std::endl;
+			break;
+		case FACTOR:
+			std::cout << *space << "Factor" << std::endl;
+			break;
+
+		default:
+			break;
+		}
+		if (root->children->size() == 0)
+		{
+			return;
+		}
+		for (std::vector<AST_node>::iterator i = root->children->begin(); i != root->children->end(); i++)
+		{
+			printAST(*i, lev + 1);
+		}
+	}
+	return;
+}
+
+/*
+	生成四元式
+
+*/
+

@@ -17,6 +17,7 @@ extern std::map<std::string, int> keywordTable;
 int lex()
 {
 	std::map<std::string, int>::iterator res;
+	ident.clear();
 	while (true)
 	{
 		//跳过所有空白符
@@ -121,7 +122,10 @@ int lex()
 				ident.append(sizeof(char), ch);
 				ch = getchar();
 			}
-			if (!match('\''))
+			if (match('\''))
+			{
+				ident.erase(ident.end()-1);
+			}else
 			{
 				error("The Single Quotes don't match");
 				//需要错误恢复吗？

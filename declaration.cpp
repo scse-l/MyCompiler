@@ -14,21 +14,22 @@ extern std::string ident;
 
 //常量声明
 //<常量说明部分>::=const<常量定义>{,<常量定义>};
-int constdecl()
+AST_node constdecl(AST_node parent)
 {
-	if (!match(CONST))
+	AST_node t = makeNode(CONSTDECL, parent);
+	if (!match(CONST, t))
 	{
-		return 0;
+		return NULL;
 	}
 	printf("----------------CONST DECLARATION BEGINS--------------\n");
 	//常量定义开始
-	constdef();
-	while (!match(SEMICOLON))
+	constdef(t);
+	while (!match(SEMICOLON, t))
 	{
 		//常量声明没有结束
-		if (match(COMMA))
+		if (match(COMMA,t))
 		{
-			constdef();
+			constdef(t);
 		}
 		else
 		{
@@ -37,31 +38,32 @@ int constdecl()
 			recovery(6, IDENT, SEMICOLON, VAR, PRO, FUN, BEGIN);
 			if (symbol == IDENT)
 			{
-				constdef();
+				constdef(t);
 			}
 		}
 	}
 	printf("----------------CONST DECLARATION END--------------\n");
-	return 0;
+	return t;
 }
 
 //常量定义
 //<常量定义>::=<标识符>＝<常量>
-int constdef()
+AST_node constdef(AST_node parent)
 {
-	if (match(IDENT) && match(EQL))
+	AST_node t = makeNode(CONSTDEF, parent);
+	if (match(IDENT,t) && match(EQL,t))
 	{
-		if (match(CH))
+		if (match(CH,t))
 		{
 			//<标识符>＝<字符>
-
+			
 		}
-		else if (match(NUM))
+		else if (match(NUM,t))
 		{
 			//<标识符>＝<无符号整数>
 
 		}
-		else if ((match(MINUS) || match(PLUS)) && match(NUM))
+		else if ((match(MINUS, t) || match(PLUS, t)) && match(NUM, t))
 		{
 			//<标识符>＝[+-]<无符号整数>
 		}
@@ -70,7 +72,7 @@ int constdef()
 			error("Const Declaration Error");
 			//错误恢复
 			recovery(2, COMMA, SEMICOLON);
-			return 1;
+			return NULL;
 		}
 	}
 	else
@@ -78,36 +80,48 @@ int constdef()
 		error("Const Declaration Error");
 		//错误恢复
 		recovery(2, COMMA, SEMICOLON);
-		return 1;
+		return NULL;
 	}
-	return 0;
+	return t;
 }
 
 //变量声明
 //<变量说明部分>::=var<变量说明>;{<变量说明>;}
-int vardecl()
+AST_node vardecl(AST_node parent)
 {
-	if (!match(VAR))
+	AST_node t = makeNode(VARDECL, parent);
+	if (!match(VAR,t))
 	{
-		return 0;
+		return NULL;
 	}
 	printf("----------------VAR DECLARATION BEGINS--------------\n");
 	//变量定义开始
-	//<变量说明>::=<标识符>{,<标识符>}:<类型>
-	while (match(IDENT))
+	do
 	{
-		vardef();
-	}
+		vardef(t);
+		if (!match(SEMICOLON, t))
+		{
+			error("No Semicolon Found After a var declaration");
+			recovery(5, SEMICOLON, IDENT, PRO, FUN, BEGIN);
+		}
+	} while (symbol == IDENT);
 	printf("----------------VAR DECLARATION END--------------\n");
-	return 0;
+	return t;
 }
 
 //变量定义
-int vardef()
+//<变量说明>::=<标识符>{,<标识符>}:<类型>
+AST_node vardef(AST_node parent)
 {
-	while (match(COMMA))
+	AST_node t = makeNode(VARDEF, parent);
+	if (!match(IDENT, t))
 	{
-		if (!match(IDENT))
+		error("Var Declaration Error");
+		recovery(5, SEMICOLON, IDENT, PRO, FUN, BEGIN);
+	}
+	while (match(COMMA,t))
+	{
+		if (!match(IDENT,t))
 		{
 			error("Var Declaration Error");
 			recovery(2, COLON, COMMA);
@@ -115,41 +129,25 @@ int vardef()
 		}
 	}
 	//多个标识符已经匹配完毕
-	if (match(COLON))
+	if (match(COLON,t))
 	{
-		if (match(INT) || match(CHAR))
+		if (match(INT,t) || match(CHAR,t))
 			{
 				//基本类型
-				if (!match(SEMICOLON))
-				{
-					//没有分号
-					error("Var Declaration Error");
-					recovery(2, SEMICOLON, IDENT);
-					match(SEMICOLON);
-				}
 			}
-		else if (match(ARRAY))
+		else if (match(ARRAY,t))
 			{
 				//数组声明
-				if (match(LBRACKET) && match(NUM) && match(RBRACKET) &&
-					match(OF) && (match(INT) || match(CHAR)))
+				if (match(LBRACKET,t) && match(NUM,t) && match(RBRACKET,t) &&
+					match(OF,t) && (match(INT,t) || match(CHAR,t)))
 				{
-					if (!match(SEMICOLON))
-					{
-						//没有分号
-						error("Array Declaration Error");
-						//错误恢复：跳至分号
-						recovery(2, SEMICOLON, IDENT);
-						match(SEMICOLON);
-					}
 				}
 				else
 				{
 					error("Array Declaration Error");
 					//错误恢复：跳至分号
 					recovery(2, SEMICOLON, IDENT);
-					match(SEMICOLON);
-					return 1;
+					return NULL;
 				}
 			}
 		else
@@ -158,8 +156,7 @@ int vardef()
 				error("Unknown Var Type");
 				//错误恢复：跳至分号
 				recovery(2, SEMICOLON, IDENT);
-				match(SEMICOLON);
-				return 1;
+				return NULL;
 			}
 	}
 	else
@@ -168,22 +165,22 @@ int vardef()
 		error("Var Declaration Error");
 		//错误恢复：跳至分号
 		recovery(2, SEMICOLON, IDENT);
-		match(SEMICOLON);
 	}
-	return 0;
+	return t;
 }
 
 //过程声明
 //<过程说明部分>::=<过程首部><分程序>;{过程说明部分}
-int prodecl()
+AST_node prodecl(AST_node parent)
 {
+	AST_node t = makeNode(PRODECL, parent);
 	while (symbol == PRO)
 	{
 		printf("----------------PROCEDURE DECLARATION BEGINS--------------\n");
 		//过程声明开始
-		prohead();					//过程首部语法分析函数
-		program();					//分程序语法分析函数
-		if (!match(SEMICOLON))
+		prohead(t);					//过程首部语法分析函数
+		program(t);					//分程序语法分析函数
+		if (!match(SEMICOLON,t))
 		{
 			error("Missing Semicolon After Procedure");
 			recovery(3, PRO, FUN, BEGIN);
@@ -195,78 +192,83 @@ int prodecl()
 
 //过程首部
 //<过程首部>::=procedure<标识符>[<形式参数表>];
-int prohead()
+AST_node prohead(AST_node parent)
 {
-	match(PRO);
-	if (!match(IDENT))
+	AST_node t = makeNode(PROHEAD, parent);
+
+	match(PRO,t);
+	if (!match(IDENT,t))
 	{
 		error("Procedure declaration error");
 		recovery(7, SEMICOLON, LPARENT, CONST, VAR, PRO, FUN, BEGIN);
 	}
-	arglist();
-	if (!match(SEMICOLON))
+	arglist(t);
+	if (!match(SEMICOLON,t))
 	{
 		error("Missing Semicolon");
 		recovery(5, CONST,VAR,PRO,FUN,BEGIN);
 	}
-	return 0;
+	return t;
 }
 
 //形式参数表
 //<形式参数表>::='('<形式参数段>{;<形式参数段>}')'
-int arglist()
+AST_node arglist(AST_node parent)
 {
+	AST_node t = NULL;
 	//因为形式参数表是可选的，所以没有else部分
 	if (match(LPARENT))
 	{
+		t = makeNode(ARGLIST, parent);
 		//形式参数段语法分析函数
-		args();
-		while (match(SEMICOLON))
+		args(t);
+		while (match(SEMICOLON,t))
 		{
-			args();
+			args(t);
 		}
 		//形式参数段均分析完毕
-		if (!match(RPARENT))
+		if (!match(RPARENT,t))
 		{
 			error("Missing Right Parent");
 			//错误恢复：
 			recovery(6, SEMICOLON, VAR, CONST, PRO, FUN, BEGIN);
 			match(SEMICOLON);
-			return 1;
+			return NULL;
 		}
 	}
-	return 0;
+	return t;
 }
 
 //形式参数段语法分析函数
 //<形式参数段>::=[var]<标识符>{,<标识符>}:<基本类型>
-int args()
+AST_node args(AST_node parent)
 {
-	match(VAR);
-	if (!match(IDENT))
+	AST_node t = makeNode(ARGS, parent);
+	match(VAR,t);
+	if (!match(IDENT, t))
 	{
 		error("Wrong Args");
 		//错误恢复
 		recovery(4, COMMA, COLON, SEMICOLON, RPARENT);
 	}
-	while (match(COMMA))
+	while (match(COMMA, t))
 	{
-		if (!match(IDENT))
+		if (!match(IDENT, t))
 		{
 			error("Not a identifier");
 			//错误恢复
 			recovery(4, COMMA, COLON, SEMICOLON, RPARENT);
 		}
 	}
-	if (match(COLON))
+	if (match(COLON, t))
 	{
-		if (match(INT))
+		if (match(INT, t))
 		{
-			return 0;
+			return t;
 		}
-		else if (match(CHAR))
+		else if (match(CHAR, t))
 		{
-			return 0;
+			return t;
 		}
 		else
 		{
@@ -274,7 +276,7 @@ int args()
 			error("Wrong Type:must be basic type");
 			//错误恢复：跳至分号或者右括号
 			recovery(2, SEMICOLON, RPARENT);
-			return 1;
+			return NULL;
 		}
 	}
 	else
@@ -282,58 +284,61 @@ int args()
 		error("Missing Colon");
 		//错误恢复：跳至分号或者右括号
 		recovery(2, SEMICOLON, RPARENT);
-		return 1;
+		return NULL;
 	}
+	return t;
 }
 
 //函数声明
 //<函数说明部分>::=<函数首部><分程序>;{<函数说明部分>}
-int fundecl()
+AST_node fundecl(AST_node parent)
 {
+	AST_node t = makeNode(FUNDECL,parent);
 	while (symbol == FUN)
 	{
 		printf("----------------FUNCTION DECLARATION BEGINS--------------\n");
 		//函数声明开始
-		funhead();
-		program();	
-		if (!match(SEMICOLON))
+		funhead(t);
+		program(t);	
+		if (!match(SEMICOLON,t))
 		{
 			error("Missing Semicolon After Function");
 			recovery(2, FUN, BEGIN);
 		}
 	}
 	printf("----------------ALL FUNCTION DECLARATION END--------------\n");
-	return 0;
+	return t;
 }
 
 //函数首部
 //<函数首部>::=function<标识符>[<形式参数表>]:<基本类型>;
-int funhead()
+AST_node funhead(AST_node parent)
 {
-	match(FUN);
-	if (!match(IDENT))
+	AST_node t = makeNode(FUNHEAD, parent);
+	match(FUN,t);
+	if (!match(IDENT,t))
 	{
 		error("Function Declaration Error");
 		recovery(8, COLON, SEMICOLON, LPARENT, VAR, CONST, FUN, PRO, BEGIN);
 	}
-	arglist();
-	if (!match(COLON))
+	arglist(t);
+	if (!match(COLON,t))
 	{
 		error("Missing Colon After Args");
 		recovery(8, INT, CHAR, SEMICOLON, VAR, CONST, PRO, FUN, BEGIN);
 	}
-	if (!match(INT))
+	if (!match(INT,t))
 	{
-		if (!match(CHAR))
+		if (!match(CHAR,t))
 		{
 			error("Missing Return Type");
 			recovery(6, SEMICOLON, CONST, VAR, FUN, PRO, BEGIN);
 		}
 	}
-	if (!match(SEMICOLON))
+	if (!match(SEMICOLON,t))
 	{
 		error("Missing Semicolon After Function Head");
 		recovery(5,CONST, VAR, PRO, FUN, BEGIN);
 	}
-	return 0;
+	return t;
 }

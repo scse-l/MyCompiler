@@ -6,61 +6,64 @@ extern int symbol;
 
 //表达式
 //<表达式>::=[+|-]<项>{<加法运算符><项>}
-int express()
+AST_node express(AST_node parent)
 {
+	AST_node t = makeNode(EXPRESSION, parent);
 	printf("----------------EXPRESSION BEGINS--------------\n");
-	match(MINUS);
-	match(PLUS);
-	term();
-	while (match(MINUS) || match(PLUS))
+	match(MINUS,t);
+	match(PLUS,t);
+	term(t);
+	while (match(MINUS,t) || match(PLUS,t))
 	{
-		term();
+		term(t);
 	}
 	printf("----------------EXPRESSION END--------------\n");
-	return 0;
+	return t;
 }
 
 //项
 //<项>::=<因子>{<乘法运算符><因子>}
-int term()
+AST_node term(AST_node parent)
 {
-	factor();
-	while (match(TIMES) || match(SLASH))
+	AST_node t = makeNode(TERM, parent);
+	factor(t);
+	while (match(TIMES,t) || match(SLASH,t))
 	{
-		factor();
+		factor(t);
 	}
-	return 0;
+	return t;
 }
 
 //因子
 //<因子>::=<标识符>|<标识符>'['<表达式>']'|<无符号整数>|'('<表达式>')'|<函数调用语句>
-int factor()
+AST_node factor(AST_node parent)
 {
+	AST_node t = makeNode(FACTOR, parent);
 	switch (symbol)
 	{
-	case NUM: match(NUM); break;
+	case NUM: match(NUM,t); break;
 	case IDENT:
-		match(IDENT);
-		if (match(LBRACKET))
+		match(IDENT,t);
+		if (match(LBRACKET,t))
 		{
 			//<标识符>'['<表达式>']'
-			express();
-			if (!match(RBRACKET))
+			express(t);
+			if (!match(RBRACKET,t))
 			{
 				error("Missing right bracket");
 				recovery(7, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN);
 			}
 		}
-		else if (match(LPARENT))
+		else if (match(LPARENT,t))
 		{
 			//函数调用语句
 			//<函数调用语句>::=<标识符>[<实在参数表>]
-			express();
-			while (match(COMMA))
+			express(t);
+			while (match(COMMA,t))
 			{
-				express();
+				express(t);
 			}
-			if (!match(RPARENT))
+			if (!match(RPARENT,t))
 			{
 				error("Missing Right Parenthesis");
 				recovery(7, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN);
@@ -68,9 +71,9 @@ int factor()
 		}
 		break;
 	case LPARENT:
-		match(LPARENT);
-		express();
-		if (!match(RPARENT))
+		match(LPARENT,t);
+		express(t);
+		if (!match(RPARENT,t))
 		{
 			error("Missing right parenthesis");
 			recovery(7, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN);
@@ -80,5 +83,5 @@ int factor()
 		error("Not a factor");
 		recovery(8, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN, RPARENT);
 	}
-	return 0;
+	return t;
 }
