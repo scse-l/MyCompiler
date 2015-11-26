@@ -40,6 +40,10 @@ AST_node constdecl(AST_node parent)
 			{
 				constdef(t);
 			}
+			else if (symbol != SEMICOLON)
+			{
+				break;
+			}
 		}
 	}
 	printf("----------------CONST DECLARATION END--------------\n");

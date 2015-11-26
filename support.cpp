@@ -112,6 +112,7 @@ void errorRep()
 	for (std::vector<std::string>::iterator i = errorMsg.begin(); i != errorMsg.end(); i++)
 	{
 		std::cout << *i << std::endl;
+		//printf("%s\n", (*i).c_str());
 	}
 }
 

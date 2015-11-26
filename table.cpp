@@ -84,9 +84,13 @@ void printTable(Table &t)
 
 	for (; i != t.end(); i++)
 	{
-		std::cout << i->first << ", ";
+		if (i->second.empty())
+		{
+			continue;
+		}
 		for (itemList::iterator j = i->second.begin(); j != i->second.end(); j++)
 		{
+			std::cout << i->first << ", ";
 			printItem(*j);
 		}
 	}
@@ -134,7 +138,7 @@ void printItem(tableItem &i)
 		{
 			std::cout << ((procedureTemplet*)i.addr)->types->at(n) << ", ";
 		}
-		printf("\n");
+		std::cout<<", "<<std::endl;
 		break;
 	case FUN:
 		cnt = ((functionTemplet*)i.addr)->args;
@@ -152,11 +156,49 @@ void printItem(tableItem &i)
 		{
 			std::cout << ((functionTemplet*)i.addr)->types->at(n) << ", ";
 		}
-		printf("\n");
+		std::cout << std::endl;
 		break;
+	case ARGS:
+		std::cout << "arg, ";
+		if (i.attribute == INT)
+		{
+			std::cout << "int, ," << i.level << std::endl;
+		}
+		else if (i.attribute == CHAR)
+		{
+			std::cout << "char, ," << i.level << std::endl;
+		}
+		break;
+
 	default:
-		printf("\n");
+		std::cout << std::endl;
 		break;
+	}
+	return;
+}
+
+void tableClear(Table &t, int lev)
+{
+	Table::iterator i = t.begin();
+
+	for (; i != t.end(); i++)
+	{
+		itemList* List = &(i->second);
+		for (itemList::iterator j = List->begin(); j != List->end(); j++)
+		{
+			if (j->level == lev)
+			{
+				List->erase(j);
+				if (List->empty())
+				{
+					break;
+				}
+				else
+				{
+					j = List->begin();
+				}
+			}
+		}
 	}
 	return;
 }

@@ -40,3 +40,4 @@ tableItem* tableInsert(Table &t, std::string name, int type, int attribute,
 
 void printTable(Table &t);
 void printItem(tableItem &i);
+void tableClear(Table &t, int lev);
