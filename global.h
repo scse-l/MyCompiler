@@ -63,11 +63,14 @@ AST_node makeNode(ASTType ast_type, LexType lex_symbol, AST_node parent);
 void printAST(AST_node root, int lev);
 
 typedef struct {
-
+	int args;						//记录参数的个数
+	std::vector<int>* types;		//记录参数的类型
 
 } procedureTemplet;
 
 typedef struct {
+	int args;						//记录参数的个数
+	std::vector<int>* types;		//记录参数的类型
 
 
 } functionTemplet;

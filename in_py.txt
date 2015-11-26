@@ -1,17 +1,11 @@
+const pi = 3, e = 2,target = 'g',c = '5';
 
-const pi = 3.14, e = 2.7;
+var left,right,mid,n:integer;name:array[30] of char;arr:array[26] of char;
 
-var left,right,mid,n:integer;c,target:char;name:array[30] of char;arr:array[26] of char;
-
-procedure search(left,right:integer;target:char;arr:array[26] of char);
+procedure search(left,right:integer;target:char);
 	var i:integer;
 	begin
-		for i:= left to right do
-			begin
-				if arr[i] = target
-				then
-					write("Find the target");
-			end
+
 	end;
 
 procedure mergesort(l,r,mid:integer);
@@ -20,13 +14,13 @@ procedure mergesort(l,r,mid:integer);
 		i:=l;
 		j:=mid+1;
 		k:=l;
-		
+
 		if i<=mid 
 		then begin
 			if j<=r
 			then do
 				begin
-					flag := 0
+					flag := 0;
 					if a[i]<=a[j] 
 					then begin
 						b[k]:=a[i];
@@ -36,12 +30,12 @@ procedure mergesort(l,r,mid:integer);
 						b[k]:=a[j];
 						ans:=ans-k+j; 
 						j := j+1;
-					end
+					end;
 					k := k+1;
 					if i <= mid
 					then if j <= r
-						then flag = 1;
-				end while flag = 1
+						then flag := 1;
+				end while flag = 1;
 				;
 			end;
 		if i>mid 
@@ -58,7 +52,7 @@ procedure mergesort(l,r,mid:integer);
 				b[k]:=a[x];
 				k := k + 1
 			 end
-		end
+		end;
 		for x:=l to r do
 			a[x]:=b[x];
 	 end;
@@ -77,15 +71,15 @@ procedure mergesort(l,r,mid:integer);
 	 end;	
 	
 	
-function binsearch(left,right:integer;target:char;arr:array[26] of char) : integer;
+function binsearch(left,right:integer;target:char) : integer;
 	var mid:integer;
 	begin
-		if(left <= right)
+		if left <= right
 		then
 			mid := (left + right) / 2;
 			if target = arr[mid]
 			then
-				write("Find the target");
+				write("Find the target")
 			else if	target < arr[mid]
 			then
 				binsearch(left,mid-1,target,arr)
@@ -97,10 +91,9 @@ begin
 	read(n);
 	left := 0;
 	right := n;
-	target := 'g';
-	c := '5';
+
 	for i := 0 to right do
-		read(arr[i])
+		read(arr);
 	merge(0,right);
 	search(0,right,target,arr);
 	binsearch(0,right,c,arr);

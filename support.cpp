@@ -96,6 +96,15 @@ void error(std::string msg)
 	msg = ">>>>>>  line " + s + "   " + msg;
 	errorMsg.push_back(msg);
 }
+void error(int lineNo, std::string msg)
+{
+	errorCount++;
+	char _message[10];
+	char* message = itoa(lineNo, _message, 10);
+	std::string s = message;
+	msg = ">>>>>>  line " + s + "   " + msg;
+	errorMsg.push_back(msg);
+}
 
 //输出错误信息
 void errorRep()
@@ -106,6 +115,12 @@ void errorRep()
 	}
 }
 
+//清楚错误信息
+void errorClean()
+{
+	errorCount = 0;
+	errorMsg.clear();
+}
 /*
 	错误恢复
 	n:接下来参数的个数
@@ -145,6 +160,7 @@ AST_node makeNode(ASTType ast_type, AST_node parent)
 {
 	AST_node t = (AST_node)malloc(sizeof(AST_t));
 	t->ast_type = ast_type;
+	t->lex_symbol = (LexType)0;
 	t->parent = parent;
 	t->lineNo = lineNo;
 	t->children = new std::vector<AST_node>;

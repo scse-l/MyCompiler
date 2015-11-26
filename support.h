@@ -22,8 +22,11 @@ bool match(int type, AST_node parent);
 
 //记录错误信息
 void error(std::string msg);
+void error(int lineNo, std::string msg);
 //输出错误信息
 void errorRep();
+//清除错误信息
+void errorClean();
 //错误恢复函数
 void recovery(int n, ...);
 #endif
