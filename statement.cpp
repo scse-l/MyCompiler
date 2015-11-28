@@ -87,6 +87,7 @@ AST_node statement(AST_node parent)
 AST_node stat_list(AST_node t)
 {
 	printf("----------------Statement List--------------\n");
+	//t->ast_type = STATS;
 	match(BEGIN,t);
 	statement(t);
 	while (match(SEMICOLON,t))
@@ -107,6 +108,7 @@ AST_node stat_assign(AST_node t)
 {
 	//由于区别赋值语句与过程调用语句，所以IDENT已经被匹配
 	printf("---------------------Assignment--------------\n");	
+	t->ast_type = ASSIGNSTAT;
 	if (match(LBRACKET, t))
 	{
 		express(t);
@@ -127,6 +129,7 @@ AST_node stat_assign(AST_node t)
 AST_node stat_procedure(AST_node t)
 {
 	printf("-------------------Procedure Call-----------\n");
+	t->ast_type = CALL;
 	if (symbol == LPARENT)
 	{
 		//参数表
@@ -162,6 +165,7 @@ AST_node arg_list(AST_node parent)
 AST_node stat_for(AST_node t)
 {
 	printf("----------------For Loop--------------\n");
+	t->ast_type = FORSTAT;
 	match(FOR,t);
 	if (!match(IDENT,t))
 	{
@@ -199,6 +203,7 @@ AST_node stat_for(AST_node t)
 AST_node stat_do(AST_node t)
 {
 	printf("----------------Do While Loop--------------\n");
+	t->ast_type = DOSTAT;
 	match(DO,t);
 	statement(t);
 	if (!match(WHILE,t))
@@ -217,6 +222,7 @@ AST_node stat_do(AST_node t)
 AST_node stat_if(AST_node t)
 {
 	printf("----------------If Statement--------------\n");
+	t->ast_type = IFSTAT;
 	match(IF,t);
 	condition(t);
 	if (!match(THEN,t))
@@ -273,6 +279,7 @@ AST_node condition(AST_node parent)
 AST_node stat_write(AST_node t)
 {
 	printf("----------------Write Statement--------------\n");
+	t->ast_type = WRITESTAT;
 	match(WRITE,t);
 	if (!match(LPARENT,t))
 	{
@@ -304,6 +311,7 @@ AST_node stat_write(AST_node t)
 AST_node stat_read(AST_node t)
 {
 	printf("----------------Read Statement--------------\n");
+	t->ast_type = READSTAT;
 	match(READ,t);
 	if (!match(LPARENT,t))
 	{

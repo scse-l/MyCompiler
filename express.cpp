@@ -39,9 +39,10 @@ AST_node term(AST_node parent)
 AST_node factor(AST_node parent)
 {
 	AST_node t = makeNode(FACTOR, parent);
+	LexType type = (LexType)0;
 	switch (symbol)
 	{
-	case NUM: match(NUM,t); break;
+	case NUM: match(NUM, t); type = INT; break;
 	case IDENT:
 		match(IDENT,t);
 		if (match(LBRACKET,t))

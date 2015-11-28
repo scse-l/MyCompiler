@@ -10,11 +10,9 @@
 typedef struct table_t
 {
 	int type;				//标识符类型：const、var、procedure、function
-	int attribute;			//标识符属性：integer、char、array
-							//			对于函数则记录返回值类型				
+	int attribute;			//标识符属性：integer、char、array,对于函数则记录返回值类型							
 	int level;				//标识符所属层数
-	void *addr;				//地址：对于integer和char记录其值
-							//		对于array、function、procedure记录其属性结构所在的地址
+	void *addr;				//地址：对于integer和char记录其值,对于array、function、procedure记录其属性结构所在的地址
 } tableItem;
 
 typedef std::vector<tableItem> itemList;
