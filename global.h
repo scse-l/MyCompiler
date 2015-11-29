@@ -29,6 +29,7 @@ enum Lex_Type_e
 enum AST_Type_e 
 {
 	PROGRAM, STATEMENT, TERMINAL, ROOT,
+	IFSTAT, FORSTAT, ASSIGNSTAT, WRITESTAT, DOSTAT, READSTAT, STATS, EMPTY,CALL,
 	CONSTDECL, CONSTDEF, VARDECL, VARDEF, PRODECL, PROHEAD, FUNDECL, FUNHEAD,
 	ARGLIST,ARGS,EXPRESSION, TERM, FACTOR, CONDITION
 
@@ -39,8 +40,8 @@ typedef struct AST_t* AST;
 typedef AST AST_node;
 
 struct AST_t {
-	ASTType ast_type;									//记录当前节点的语法类型
-	LexType lex_symbol;								//记录当前节点的词法类型
+	ASTType ast_type;										//记录当前节点的语法类型
+	LexType lex_symbol;										//记录当前节点的词法类型
 	AST_node parent;										//记录当前节点的父节点
 	std::vector<AST_node> *children;						//记录当前节点的子节点
 	int lineNo;												//记录当前节点的位置
@@ -76,7 +77,7 @@ typedef struct {
 } functionTemplet;
 
 typedef struct {
-	int length;
-	int type;
+	int length;						//记录数组的上界
+	LexType type;					//记录数组的类型
 } arrayTemplet;
 #endif

@@ -14,26 +14,31 @@ level:欲查找符号所属层数
 tableItem* tableFind(Table &t, std::string name, int level)
 {
 	Table::iterator res = t.find(name);
+	tableItem *ret = NULL;
+
 	if (res == t.end())
 	{
 		return NULL;
 	}
-	itemList list = res->second;
-	for (int i = 0; i != list.size(); i++)
+	itemList* list = &(res->second);
+	for (int i = 0; i != list->size(); i++)
 	{
-		if (list.at(i).level == level)
+		if (list->at(i).level <= level)
 		{
-			return &list.at(i);
+			ret = &(list->at(i));
 		}
 	}
-	return NULL;
+	return ret;
 }
 
 /*
-插入操作：将所给的符号及其属性插入到符号表中
-t:待插入的符号表
-name:待插入的符号
-type,attribute,level,addr:待插入符号的属性
+	插入操作：将所给的符号及其属性插入到符号表中
+	t:待插入的符号表
+	name:待插入的符号
+	type:待插入符号类型：const、var、procedure、function
+	attribute:待插入符号属性：integer、char、array,对于函数则记录返回值类型
+	level:待插入符号所属层数
+	addr:待插入符号的附加信息地址：对于integer和char记录其值,对于array、function、procedure记录其属性结构所在的地址
 */
 tableItem* tableInsert(Table &t, std::string name, int type, int attribute, int level, const void *addr, int lineNo)
 {
@@ -106,10 +111,10 @@ void printItem(tableItem &i)
 		std::cout << "const, ";
 		switch (i.attribute)
 		{
-		case NUM:
-			std::cout << "num, " << *((int *)(i.addr)) << ", " << i.level << std::endl;
+		case INT:
+			std::cout << "int, " << *((int *)(i.addr)) << ", " << i.level << std::endl;
 			break;
-		case CH:
+		case CHAR:
 			std::cout << "char, " << *((char *)i.addr) << ", " << i.level << std::endl;
 			break;
 		default:

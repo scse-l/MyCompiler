@@ -342,6 +342,10 @@ int tableCheck(AST root, int level)
 				{
 					//当前变量类型是数组
 					((arrayTemplet*)addr)->type = (*i)->lex_symbol;
+					for (unsigned int j = 0; j < names.size(); j++)
+					{
+						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo);
+					}
 				}
 				else
 				{
