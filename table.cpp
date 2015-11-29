@@ -40,7 +40,7 @@ tableItem* tableFind(Table &t, std::string name, int level)
 	level:待插入符号所属层数
 	addr:待插入符号的附加信息地址：对于integer和char记录其值,对于array、function、procedure记录其属性结构所在的地址
 */
-tableItem* tableInsert(Table &t, std::string name, int type, int attribute, int level, const void *addr, int lineNo)
+tableItem* tableInsert(Table &t, std::string name, LexType type, LexType attribute, int level, const void *addr, int lineNo)
 {
 	Table::iterator res = t.find(name);
 	itemList* List = NULL;

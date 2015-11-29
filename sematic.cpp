@@ -28,7 +28,7 @@ int typeCheck(AST root)
 		if ((*i)->ast_type == EXPRESSION)
 		{
 			//当前节点是表达式
-			expCheck(root);
+			expCheck(*i);
 		}
 		else if ((*i)->ast_type == CALL)
 		{
@@ -40,7 +40,7 @@ int typeCheck(AST root)
 			//当前语句是读语句
 			readStatCheck(*i);
 		}
-		else if ((*i)->ast_type == PROGRAM)
+		else
 		{
 			typeCheck(*i);
 		}
@@ -184,7 +184,10 @@ LexType termCheck(AST_node term)
 			}
 		}
 	}
-	term->lex_symbol = l;
+	if (term->lex_symbol != INT)
+	{
+		term->lex_symbol = l;
+	}
 	return l;
 }
 
@@ -244,15 +247,16 @@ LexType factorCheck(AST_node factor)
 			else if ((*i)->tableItem->attribute == ARRAY)
 			{
 				//当前标识符类型是数组
+				if ((i + 1) == factor->children->end())
+				{
+					error((*i)->lineNo, "Wrong Factor: Can not be an array");
+					return (LexType)0;
+				}
 				if ((*(i + 1))->lex_symbol == LBRACKET)
 				{
 					//<标识符>'['<表达式>']'
 					//数组元素引用
 					l = ((arrayTemplet*)(*i)->tableItem->addr)->type;
-				}
-				else
-				{
-					error((*i)->lineNo, "Wrong Factor: Can not be an array");
 				}
 			}
 			else
@@ -260,7 +264,7 @@ LexType factorCheck(AST_node factor)
 				l = (LexType)(*i)->tableItem->attribute;
 			}
 		}
-		else if ((*i)->lex_symbol == EXPRESSION)
+		else if ((*i)->ast_type == EXPRESSION)
 		{
 			expCheck(*i);
 		}
@@ -385,7 +389,7 @@ int tableCheck(AST root, int level)
 		{
 			if ((*i)->lex_symbol == IDENT)
 			{
-				tableInsert(symTable, *((*i)->val.ident), PRO, 0, level, addr, (*i)->lineNo);
+				tableInsert(symTable, *((*i)->val.ident), PRO, (LexType)0, level, addr, (*i)->lineNo);
 			}
 			else if ((*i)->ast_type == ARGLIST)
 			{
@@ -442,7 +446,8 @@ int tableCheck(AST root, int level)
 		{
 			//符号表中没有当前标识符
 			error(root->lineNo,"Undefined Identifier " + *(root->val.ident));
-			tableInsert(symTable, *(root->val.ident), 0, 0, level, NULL, root->lineNo);
+			//防止重复报错
+			tableInsert(symTable, *(root->val.ident), (LexType)0, (LexType)0, level, NULL, root->lineNo);
 			return 0;
 		}
 		root->tableItem = item;
@@ -507,7 +512,7 @@ void args(AST_node t, std::vector<int> *types, int level)
 	while (cnt > 0)
 	{
 		types->push_back((*i)->lex_symbol);
-		tableInsert(symTable, names[cnt - 1], ARGS, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		tableInsert(symTable, names[cnt - 1], VAR, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
 		cnt--;
 	}
 
