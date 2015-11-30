@@ -23,11 +23,11 @@ AST_node program(AST_node parent)
 	{
 		error("No begin found at the begin of program");
 		recovery(8, IF, FOR, DO, IDENT, SEMICOLON, READ, WRITE, BEGIN);
-		stat_list(t);
+		stat_list(makeNode(STATS,t));
 	}
 	else
 	{
-		stat_list(t);
+		stat_list(makeNode(STATS, t));
 	}
 	return t;
 }

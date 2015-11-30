@@ -77,6 +77,7 @@ AST_node statement(AST_node parent)
 	else
 	{
 		//空语句
+		t->ast_type = EMPTY;
 		printf("----------------Empty Statement--------------\n");
 	}
 	return 0;
@@ -87,7 +88,7 @@ AST_node statement(AST_node parent)
 AST_node stat_list(AST_node t)
 {
 	printf("----------------Statement List--------------\n");
-	//t->ast_type = STATS;
+	t->ast_type = STATS;
 	match(BEGIN,t);
 	statement(t);
 	while (match(SEMICOLON,t))

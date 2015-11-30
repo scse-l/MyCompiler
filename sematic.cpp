@@ -4,6 +4,7 @@
 
 #pragma warning(disable:4996)
 
+extern unsigned int errorCount;
 extern Table symTable;
 
 //语义分析程序
@@ -12,9 +13,10 @@ int sematic(AST root)
 
 	//填查符号表
 	tableCheck(root, 0);
+
 	//类型检查
 	typeCheck(root);
-
+	
 	return 0;
 }
 
@@ -25,12 +27,7 @@ int typeCheck(AST root)
 
 	for (; i != root->children->end(); i++)
 	{
-		if ((*i)->ast_type == EXPRESSION)
-		{
-			//当前节点是表达式
-			expCheck(*i);
-		}
-		else if ((*i)->ast_type == CALL)
+		if ((*i)->ast_type == CALL)
 		{
 			//当前节点是过程调用语句;
 			proCallCheck(*i);
@@ -39,6 +36,26 @@ int typeCheck(AST root)
 		{
 			//当前语句是读语句
 			readStatCheck(*i);
+		}
+		else if ((*i)->ast_type == ASSIGNSTAT)
+		{
+			//当前语句是赋值语句
+			assignStatCheck(*i);
+		}
+		else if ((*i)->ast_type == CONDITION)
+		{
+			//当前语句是if语句
+			conditionCheck(*i);
+		}
+		else if ((*i)->ast_type == FORSTAT)
+		{
+			//当前语句是for语句
+			forStatCheck(*i);
+		}
+		else if ((*i)->ast_type == WRITESTAT)
+		{
+			//当前语句是写语句
+			writeStatCheck(*i);
 		}
 		else
 		{
@@ -60,6 +77,10 @@ int proCallCheck(AST_node t)
 	{
 		if ((*i)->lex_symbol == IDENT)
 		{
+			if ((*i)->tableItem == NULL)
+			{
+				return 1;
+			}
 			addr = ((procedureTemplet*)(*i)->tableItem->addr);
 		}
 		else if ((*i)->ast_type == ARGLIST)
@@ -134,10 +155,89 @@ int readStatCheck(AST_node t)
 	{
 		if ((*i)->lex_symbol == IDENT)
 		{
+			if ((*i)->tableItem == NULL)
+			{
+				return 1;
+			}
 			if ((*i)->tableItem->type != VAR || (*i)->tableItem->attribute == ARRAY)
 			{
 				error((*i)->lineNo, "Can not use a const or an array as arg");
 			}
+		}
+	}
+	return 0;
+}
+
+int assignStatCheck(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();
+	LexType type;
+	if ((*i)->tableItem == NULL)
+	{
+		return 1;
+	}
+	type = (*i)->tableItem->attribute;
+	if ((*i)->tableItem->type == CONST || (*i)->tableItem->type == PRO)
+	{
+		error((*i)->lineNo, "Const or Procedure can not be assigned");
+		return 1;
+	}
+	if (type == ARRAY)
+	{
+		type = ((arrayTemplet*)(*i)->tableItem->addr)->type;
+	}
+	i = t->children->end() - 1;
+	expCheck(*i);
+	if (type != (*i)->lex_symbol)
+	{
+		error((*i)->lineNo, "Type not match");
+	}
+	return 0;
+}
+
+int conditionCheck(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();
+	LexType type = expCheck(*i);
+
+	if (type != expCheck(*(i + 2)))
+	{
+		error((*i)->lineNo, "Type not match");
+	}
+	return 0;
+}
+
+int forStatCheck(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin()+1;
+	LexType type;
+	if ((*i)->tableItem == NULL)
+	{
+		return 1;
+	}
+	type = (*i)->tableItem->attribute;
+	i = i + 2;
+	if (type != expCheck(*i))
+	{
+		error((*i)->lineNo, "Type not match");
+	}
+	i = i + 2;
+	if (type != expCheck(*i))
+	{
+		error((*i)->lineNo, "Type not match");
+	}
+	return 0;
+}
+
+int writeStatCheck(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();
+
+	for (; i != t->children->end(); i++)
+	{
+		if ((*i)->ast_type == EXPRESSION)
+		{
+			expCheck(*i);
 		}
 	}
 	return 0;
@@ -207,8 +307,7 @@ LexType factorCheck(AST_node factor)
 			if ((*i)->tableItem == NULL)
 			{
 				//符号表中没有当前标识符
-				error(factor->lineNo, "Undefined Identifier " + *(factor->val.ident));
-				return (LexType)0;
+				return (LexType)1;
 			}
 			if ((*i)->tableItem->type == PRO)
 			{
@@ -219,28 +318,28 @@ LexType factorCheck(AST_node factor)
 			{
 				//<函数调用语句>
 				//<函数调用语句>::=<标识符>['('<表达式>{,<表达式>}')']
-				functionTemplet *addr = (functionTemplet*)(*i)->tableItem->addr;
-				int n = 1;
+				functionTemplet *addr = (functionTemplet *)(*i)->tableItem->addr;
 				//比较形参与实参的类型和数量是否相等
-				std::vector<int>::iterator type = addr->types->begin();
-				for (; (i + n) != factor->children->end() && 
-								type != addr->types->end(); n++, type++)
+				int n = argsCheck(*(i+1), addr);
+				if (n < addr->args)
 				{
-					if ((*(i + n))->ast_type == EXPRESSION)
-					{
-						if (expCheck(*(i + n)) != *type)
-						{
-							error((*i)->lineNo, "Wrong args type");
-						}
-					}
+					char _s[5];
+					char *s = itoa(addr->args, _s, 10);
+					std::string msg = s;
+					msg = "Too Few Args:Should be " + msg + ", But ";
+					s = itoa(n, _s, 10);
+					msg = msg + s + " given";
+					error(factor->lineNo, msg);
 				}
-				if ((i + n) != factor->children->end())
+				else if (n > addr->args)
 				{
-					error((*i)->lineNo, "Too many args");
-				}
-				else if ((type != addr->types->end()))
-				{
-					error((*i)->lineNo, "Too few args");
+					char _s[5];
+					char *s = itoa(addr->args, _s, 10);
+					std::string msg = s;
+					msg = "Too Many Args:Should be " + msg + ", But ";
+					s = itoa(n, _s, 10);
+					msg = msg + s + " given";
+					error(factor->lineNo, msg);
 				}
 				l = (LexType)(*i)->tableItem->attribute;
 			}

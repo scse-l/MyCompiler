@@ -1,9 +1,9 @@
 #include "global.h"        //结构和枚举声明
 #include "support.h"       //辅助函数
 #include "lex.h"           //词法分析函数
-#include "program.h"
 #include "sematic.h"
 #include "syntax.h"
+#include "IR.h"
 #pragma warning(disable:4996)
 
 /*
@@ -32,7 +32,7 @@ int main()
 {
 	AST root = makeNode(ROOT,NULL);
 
-	freopen("in_py.txt", "r", stdin);
+	freopen("in_IR.txt", "r", stdin);
 	freopen("out.txt", "w", stdout);
 
 	//初始化
@@ -50,22 +50,21 @@ int main()
 	printf("Syntax Analysis Complete!\n\n");
 //	printAST(root, 0);
 
-	fclose(stdout);
 	freopen("Table.csv", "w", stdout);
 	//语义分析程序
 	sematic(root);
-	fclose(stdout);
+	//错误报告
 	freopen("CON", "w", stdout);
 	if (errorCount != 0)
 	{
 		printf("%d error found\n", errorCount);
 		errorRep();
+		return 0;
 	}
-	else
-	{
-		std::cout << "Sematic Analysis Completed!" << std::endl;
-	}
-	
+	printf("Sematic Analysis Completed!\n\n");
+
+	//freopen("IR.txt", "w", stdout);
+	IREmit(root);
 	return 0;
 }
 

@@ -122,6 +122,7 @@ void errorClean()
 	errorCount = 0;
 	errorMsg.clear();
 }
+
 /*
 	错误恢复
 	n:接下来参数的个数
@@ -167,6 +168,11 @@ AST_node makeNode(ASTType ast_type, AST_node parent)
 	t->children = new std::vector<AST_node>;
 	t->val.ident = new std::string(ident);
 	t->tableItem = NULL;
+	t->level = -1;
+	if (ast_type == PROGRAM)
+		t->symTable = (Table *)malloc(sizeof(Table));
+	else
+		t->symTable = NULL;
 	if(parent != NULL)
 		parent->children->push_back(t);
 	return t;

@@ -1,11 +1,12 @@
 #include "express.h"
 #include "support.h"
 #include "global.h"
+#include "statement.h"
 
 extern int symbol;
 
-//±Ì¥Ô Ω
-//<±Ì¥Ô Ω>::=[+|-]<œÓ>{<º”∑®‘ÀÀ„∑˚><œÓ>}
+//Ë°®ËææÂºè
+//<Ë°®ËææÂºè>::=[+|-]<È°π>{<Âä†Ê≥ïËøêÁÆóÁ¨¶><È°π>}
 AST_node express(AST_node parent)
 {
 	AST_node t = makeNode(EXPRESSION, parent);
@@ -21,8 +22,8 @@ AST_node express(AST_node parent)
 	return t;
 }
 
-//œÓ
-//<œÓ>::=<“Ú◊”>{<≥À∑®‘ÀÀ„∑˚><“Ú◊”>}
+//È°π
+//<È°π>::=<Âõ†Â≠ê>{<‰πòÊ≥ïËøêÁÆóÁ¨¶><Âõ†Â≠ê>}
 AST_node term(AST_node parent)
 {
 	AST_node t = makeNode(TERM, parent);
@@ -34,8 +35,8 @@ AST_node term(AST_node parent)
 	return t;
 }
 
-//“Ú◊”
-//<“Ú◊”>::=<±Í ∂∑˚>|<±Í ∂∑˚>'['<±Ì¥Ô Ω>']'|<Œﬁ∑˚∫≈’˚ ˝>|'('<±Ì¥Ô Ω>')'|<∫Ø ˝µ˜”√”Ôæ‰>
+//Âõ†Â≠ê
+//<Âõ†Â≠ê>::=<Ê†áËØÜÁ¨¶>|<Ê†áËØÜÁ¨¶>'['<Ë°®ËææÂºè>']'|<Êó†Á¨¶Âè∑Êï¥Êï∞>|'('<Ë°®ËææÂºè>')'|<ÂáΩÊï∞Ë∞ÉÁî®ËØ≠Âè•>
 AST_node factor(AST_node parent)
 {
 	AST_node t = makeNode(FACTOR, parent);
@@ -47,7 +48,7 @@ AST_node factor(AST_node parent)
 		match(IDENT,t);
 		if (match(LBRACKET,t))
 		{
-			//<±Í ∂∑˚>'['<±Ì¥Ô Ω>']'
+			//<Ê†áËØÜÁ¨¶>'['<Ë°®ËææÂºè>']'
 			express(t);
 			if (!match(RBRACKET,t))
 			{
@@ -55,20 +56,11 @@ AST_node factor(AST_node parent)
 				recovery(7, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN);
 			}
 		}
-		else if (match(LPARENT,t))
+		else if (symbol == LPARENT)
 		{
-			//∫Ø ˝µ˜”√”Ôæ‰
-			//<∫Ø ˝µ˜”√”Ôæ‰>::=<±Í ∂∑˚>[< µ‘⁄≤Œ ˝±Ì>]
-			express(t);
-			while (match(COMMA,t))
-			{
-				express(t);
-			}
-			if (!match(RPARENT,t))
-			{
-				error("Missing Right Parenthesis");
-				recovery(7, TIMES, SLASH, MINUS, PLUS, END, SEMICOLON, THEN);
-			}
+			//ÂáΩÊï∞Ë∞ÉÁî®ËØ≠Âè•
+			//<ÂáΩÊï∞Ë∞ÉÁî®ËØ≠Âè•>::=<Ê†áËØÜÁ¨¶>[<ÂÆûÂú®ÂèÇÊï∞Ë°®>]
+			arg_list(t);
 		}
 		break;
 	case LPARENT:

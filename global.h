@@ -36,6 +36,7 @@ struct AST_t {
 	AST_node parent;										//记录当前节点的父节点
 	std::vector<AST_node> *children;						//记录当前节点的子节点
 	int lineNo;												//记录当前节点的位置
+	int level;												//记录当前节点的层数
 	union 
 	{
 		std::string* ident;										//记录当前节点的单词

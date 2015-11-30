@@ -1,0 +1,21 @@
+const pi = 3, e = 2,target = 'g',c = '5';
+
+var left,right,mid,n,i:integer;name:array[30] of integer;arr:array[26] of char;
+	
+begin
+	read(n);
+	left := name[4];
+	right := n;
+
+	read(left);
+	if right = e
+	then begin
+		read(left);
+		left := n;
+		end
+	else begin
+		right := 3;
+		arr[10] := c;
+	end;
+	left := pi;
+end.
