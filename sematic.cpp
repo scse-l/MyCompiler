@@ -385,6 +385,7 @@ LexType factorCheck(AST_node factor)
 int tableCheck(AST root, int level)
 {
 	std::vector<AST_node>::iterator i = root->children->begin();
+	int offset = 0;
 
 	if (root->ast_type == CONSTDEF)
 	{
@@ -403,14 +404,14 @@ int tableCheck(AST root, int level)
 			{
 				addr = (int *)malloc(sizeof(int));
 				*((int *)addr) = (*i)->val.value;
-				(*i)->tableItem = tableInsert(symTable, name, CONST, INT, level, addr, (*i)->lineNo);
+				(*i)->tableItem = tableInsert(symTable, name, CONST, INT, level, addr, (*i)->lineNo, 0);
 			}
 			else if ((*i)->lex_symbol == CH)
 			{
 				addr = (char *)malloc(sizeof(char));
 				char c = (*i)->val.ident->c_str()[0];
 				*((char *)addr) = c;
-				(*i)->tableItem = tableInsert(symTable, name, CONST, CHAR, level, addr, (*i)->lineNo);
+				(*i)->tableItem = tableInsert(symTable, name, CONST, CHAR, level, addr, (*i)->lineNo, 0);
 			}
 		}
 		return 0;
@@ -445,9 +446,19 @@ int tableCheck(AST root, int level)
 				{
 					//当前变量类型是数组
 					((arrayTemplet*)addr)->type = (*i)->lex_symbol;
+					int space = 0;
+					if ((*i)->lex_symbol == INT)
+					{
+						space = ((arrayTemplet *)addr)->type * 4;
+					}
+					else
+					{
+						space = ((arrayTemplet *)addr)->type * 2;
+					}
 					for (unsigned int j = 0; j < names.size(); j++)
 					{
-						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo);
+						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo, offset);
+						offset += space;
 					}
 				}
 				else
@@ -460,7 +471,8 @@ int tableCheck(AST root, int level)
 						{
 							addr = (int *)malloc(sizeof(int));
 							*((int *)addr) = 0;
-							tableItem* item = tableInsert(symTable, names[j], VAR, INT, level, addr, (*i)->lineNo);
+							tableItem* item = tableInsert(symTable, names[j], VAR, INT, level, addr, (*i)->lineNo, offset);
+							offset += 4;
 						}
 					}
 					else
@@ -468,8 +480,8 @@ int tableCheck(AST root, int level)
 						for (unsigned int j = 0; j < names.size(); j++)
 						{
 							addr = (char *)malloc(sizeof(char));
-							*((char *)addr) = 't';
-							tableItem* item = tableInsert(symTable, names[j], VAR, CHAR, level, addr, (*i)->lineNo);
+							tableItem* item = tableInsert(symTable, names[j], VAR, CHAR, level, addr, (*i)->lineNo, offset);
+							offset += 2;
 						}
 					}
 				}

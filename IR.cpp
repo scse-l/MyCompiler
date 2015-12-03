@@ -45,6 +45,16 @@ std::string* IREmit(AST_node root)
 		//过程调用语句
 		callStatEmit(root);
 	}
+	else if (root->ast_type == CONSTDEF)
+	{
+		//常量声明
+		constDefEmit(root);
+	}
+	else if (root->ast_type == VARDEF)
+	{
+		//变量声明
+		varDefEmit(root);
+	}
 	else if(root->ast_type == PROGRAM || root->ast_type == STATS ||
 			root->ast_type == PRODECL || root->ast_type == FUNDECL)
 	{
@@ -57,6 +67,67 @@ std::string* IREmit(AST_node root)
 	}
 	return res;
 }
+
+//常量声明的四元式生成
+std::string* constDefEmit(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();
+	std::string *res = NULL, *op1 = NULL, *op2 = NULL, op;
+
+	if ((*i)->lex_symbol == IDENT)
+	{
+		res = (*i)->val.ident;
+		op = "const";
+		if ((*i)->tableItem->attribute == CHAR)
+		{
+			op1 = (*i)->val.ident;
+			op2 = new std::string("char");
+		}
+		else
+		{
+			char _s[5], *s = itoa((*i)->val.value, _s, 10);
+			op1 = new std::string(s);
+			op2 = new std::string("int");
+		}
+	}
+	i += 2;
+	emit(op, res, op1, op2);
+	return res;
+}
+
+//变量声明的四元式生成
+std::string* varDefEmit(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();
+	std::vector<std::string*> names;
+
+	std::string *res = NULL, *op1 = NULL, *op2 = NULL, op;
+
+	for (; i != t->children->end(); i++)
+	{
+		if ((*i)->lex_symbol == IDENT)
+		{
+			names.push_back((*i)->val.ident);
+			op = "var";
+			if ((*i)->tableItem->attribute == CHAR)
+			{
+				op1 = (*i)->val.ident;
+				op2 = new std::string("char");
+			}
+			else
+			{
+				char _s[5], *s = itoa((*i)->val.value, _s, 10);
+				op1 = new std::string(s);
+				op2 = new std::string("int");
+			}
+		}
+
+	}
+	i += 2;
+	emit(op, res, op1, op2);
+	return res;
+}
+
 
 //赋值语句的四元式生成
 //<赋值语句>::=<标识符>:=<表达式>|<函数标识符>:=<表达式>|<标识符>'['<表达式>']':=<表达式>
