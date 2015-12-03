@@ -1,7 +1,7 @@
 const pi = 3, e = 2,target = 'g',c = '5';
 
 var left,right,mid,n:integer;name:array[30] of char;arr:array[26] of char;
-
+	a,b:array[50] of integer;ans,i:integer;
 procedure search(left,right:integer;target:char);
 	var i:integer;
 	begin
@@ -82,9 +82,9 @@ function binsearch(left,right:integer;target:char) : integer;
 				write("Find the target")
 			else if	target < arr[mid]
 			then
-				binsearch(left,mid-1,target,arr)
+				binsearch(left,mid-1,target)
 			else
-				binsearch(mid+1,right,target,arr)
+				binsearch(mid+1,right,target)
 	end;
 	
 begin
@@ -95,6 +95,6 @@ begin
 	for i := 0 to right do
 		read(arr);
 	merge(0,right);
-	search(0,right,target,arr);
-	binsearch(0,right,c,arr);
+	search(0,right,target);
+	binsearch(0,right,c);
 end.
