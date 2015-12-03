@@ -64,7 +64,7 @@ int main()
 	printf("Sematic Analysis Completed!\n\n");
 
 	//freopen("IR.txt", "w", stdout);
-	IREmit(root);
+	IREmit(root->children->at(0));
 	return 0;
 }
 

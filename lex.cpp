@@ -161,6 +161,7 @@ int lex()
 					}
 				}
 			}
+			ident.erase(--(ident.end()));			//去掉末尾的双引号
 			return STRING;
 		}
 		else if (ch == EOF)
