@@ -288,8 +288,3 @@ void printAST(AST_node root, int lev)
 	return;
 }
 
-/*
-	生成四元式
-
-*/
-

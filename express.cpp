@@ -1,6 +1,5 @@
 #include "express.h"
 #include "support.h"
-#include "global.h"
 #include "statement.h"
 
 extern int symbol;

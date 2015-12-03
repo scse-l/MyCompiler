@@ -112,10 +112,10 @@ void printItem(tableItem &i)
 		switch (i.attribute)
 		{
 		case INT:
-			std::cout << "int, " << *((int *)(i.addr)) << ", " << i.level << std::endl;
+			std::cout << "int, " << *((int *)(i.addr)) << std::endl;
 			break;
 		case CHAR:
-			std::cout << "char, " << *((char *)i.addr) << ", " << i.level << std::endl;
+			std::cout << "char, " << *((char *)i.addr) << std::endl;
 			break;
 		default:
 			break;
@@ -125,23 +125,30 @@ void printItem(tableItem &i)
 		std::cout << "var, ";
 		if (i.attribute == INT)
 		{
-			std::cout << "int, ," << i.level << std::endl;
+			std::cout << "int, ," << std::endl;
 		}
 		else if (i.attribute == CHAR)
 		{
-			std::cout << "char, ," << i.level << std::endl;
+			std::cout << "char, ," << std::endl;
 		}
 		else
 		{
-			std::cout << "array, ," << i.level << std::endl;
+			std::cout << "array, ," << std::endl;
 		}
 		break;
 	case PRO:
 		cnt = ((procedureTemplet*)i.addr)->args;
-		std::cout << "procedure,  , " << "," << i.level << "," << cnt << ", ";
+		std::cout << "procedure,  , " << "," << cnt << ", ";
 		for (int n = 0; n < cnt; n++)
 		{
-			std::cout << ((procedureTemplet*)i.addr)->types->at(n) << ", ";
+			if (((procedureTemplet*)i.addr)->types->at(n) == INT)
+			{
+				std::cout << "int" << ", ";
+			}
+			else
+			{
+				std::cout << "char" << ", ";
+			}
 		}
 		std::cout<<", "<<std::endl;
 		break;
@@ -150,16 +157,23 @@ void printItem(tableItem &i)
 		std::cout << "function, ";
 		if (i.attribute == INT)
 		{
-			std::cout << "int,," << i.level << ",";
+			std::cout << "int," << ",";
 		}
 		else if (i.attribute == CHAR)
 		{
-			std::cout << "char,," << i.level << ",";
+			std::cout << "char," << ",";
 		}
 		std::cout << cnt << ",";
 		for (int n = 0; n < cnt; n++)
 		{
-			std::cout << ((functionTemplet*)i.addr)->types->at(n) << ", ";
+			if (((functionTemplet*)i.addr)->types->at(n) == INT)
+			{
+				std::cout << "int" << ", ";
+			}
+			else
+			{
+				std::cout << "char" << ", ";
+			}
 		}
 		std::cout << std::endl;
 		break;
@@ -167,11 +181,11 @@ void printItem(tableItem &i)
 		std::cout << "arg, ";
 		if (i.attribute == INT)
 		{
-			std::cout << "int, ," << i.level << std::endl;
+			std::cout << "int, ," << std::endl;
 		}
 		else if (i.attribute == CHAR)
 		{
-			std::cout << "char, ," << i.level << std::endl;
+			std::cout << "char, ," << std::endl;
 		}
 		break;
 

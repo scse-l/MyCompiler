@@ -7,7 +7,6 @@
 #include "lex.h"
 #include "declaration.h"
 #include "program.h"
-#include "AST.h"
 
 extern int symbol;
 extern std::string ident;
