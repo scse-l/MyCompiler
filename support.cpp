@@ -169,10 +169,12 @@ AST_node makeNode(ASTType ast_type, AST_node parent)
 	t->val.ident = new std::string(ident);
 	t->tableItem = NULL;
 	t->level = -1;
-	if (ast_type == PROGRAM)
-		t->symTable = (Table *)malloc(sizeof(Table));
+	if (ast_type == FUNDEF || ast_type == PRODEF || ast_type == ROOT)
+		t->symTable = new Table();
 	else
-		t->symTable = NULL;
+	{
+		t->symTable = parent == NULL ? NULL : parent->symTable;
+	}
 	if(parent != NULL)
 		parent->children->push_back(t);
 	return t;
@@ -185,6 +187,7 @@ AST_node makeNode(ASTType ast_type, LexType symbol, AST_node parent)
 	t->parent = parent;
 	t->lex_symbol = symbol;
 	t->tableItem = NULL;
+	t->symTable = parent->symTable;
 	if (symbol == NUM)
 	{
 		t->val.value = value;

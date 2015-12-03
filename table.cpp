@@ -6,28 +6,26 @@
 #include "global.h"
 
 /*
-查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
-t:待查找的符号表
-name:欲查找的符号
-level:欲查找符号所属层数
+	查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
+	t:待查找的符号表
+	name:欲查找的符号
+	level:欲查找符号所属层数
 */
-tableItem* tableFind(Table &t, std::string name, int level)
+tableItem* tableFind(Table &t, std::string name, AST_node parent)
 {
 	Table::iterator res = t.find(name);
 	tableItem *ret = NULL;
 
 	if (res == t.end())
 	{
-		return NULL;
+		if (parent == NULL || parent->symTable == NULL)
+		{
+			return NULL;
+		}
+		return tableFind(*(parent->symTable), name, parent->parent);
 	}
 	itemList* list = &(res->second);
-	for (int i = 0; i != list->size(); i++)
-	{
-		if (list->at(i).level <= level)
-		{
-			ret = &(list->at(i));
-		}
-	}
+	ret = &(list->at(0));
 	return ret;
 }
 
@@ -64,6 +62,7 @@ tableItem* tableInsert(Table &t, std::string name, LexType type, LexType attribu
 		item->attribute = attribute;
 		item->level = level;
 		item->addr = (void *)addr;
+		item->offset = 0;
 		List->push_back(*item);
 		return item;
 	}
@@ -76,6 +75,7 @@ tableItem* tableInsert(Table &t, std::string name, LexType type, LexType attribu
 		item->attribute = attribute;
 		item->level = level;
 		item->addr = (void *)addr;
+		item->offset = 0;
 		List->push_back(*item);
 		t.insert(std::pair<std::string, itemList>::pair(name, *List));
 		return item;

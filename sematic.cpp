@@ -5,14 +5,13 @@
 #pragma warning(disable:4996)
 
 extern unsigned int errorCount;
-extern Table symTable;
 
 //语义分析程序
 int sematic(AST root)
 {
 
 	//填查符号表
-	tableCheck(root, 0);
+	tableCheck(*(root->symTable), root, 0);
 
 	//类型检查
 	typeCheck(root);
@@ -382,10 +381,9 @@ LexType factorCheck(AST_node factor)
 
 
 //符号表填查函数
-int tableCheck(AST root, int level)
+int tableCheck(Table &symTable, AST root, int level)
 {
 	std::vector<AST_node>::iterator i = root->children->begin();
-	int offset = 0;
 
 	if (root->ast_type == CONSTDEF)
 	{
@@ -404,14 +402,14 @@ int tableCheck(AST root, int level)
 			{
 				addr = (int *)malloc(sizeof(int));
 				*((int *)addr) = (*i)->val.value;
-				(*i)->tableItem = tableInsert(symTable, name, CONST, INT, level, addr, (*i)->lineNo, 0);
+				(*(i-2))->tableItem = tableInsert(symTable, name, CONST, INT, level, addr, (*i)->lineNo);
 			}
 			else if ((*i)->lex_symbol == CH)
 			{
 				addr = (char *)malloc(sizeof(char));
 				char c = (*i)->val.ident->c_str()[0];
 				*((char *)addr) = c;
-				(*i)->tableItem = tableInsert(symTable, name, CONST, CHAR, level, addr, (*i)->lineNo, 0);
+				(*(i-2))->tableItem = tableInsert(symTable, name, CONST, CHAR, level, addr, (*i)->lineNo);
 			}
 		}
 		return 0;
@@ -457,8 +455,7 @@ int tableCheck(AST root, int level)
 					}
 					for (unsigned int j = 0; j < names.size(); j++)
 					{
-						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo, offset);
-						offset += space;
+						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo);
 					}
 				}
 				else
@@ -471,8 +468,7 @@ int tableCheck(AST root, int level)
 						{
 							addr = (int *)malloc(sizeof(int));
 							*((int *)addr) = 0;
-							tableItem* item = tableInsert(symTable, names[j], VAR, INT, level, addr, (*i)->lineNo, offset);
-							offset += 4;
+							tableItem* item = tableInsert(symTable, names[j], VAR, INT, level, addr, (*i)->lineNo);
 						}
 					}
 					else
@@ -480,8 +476,7 @@ int tableCheck(AST root, int level)
 						for (unsigned int j = 0; j < names.size(); j++)
 						{
 							addr = (char *)malloc(sizeof(char));
-							tableItem* item = tableInsert(symTable, names[j], VAR, CHAR, level, addr, (*i)->lineNo, offset);
-							offset += 2;
+							tableItem* item = tableInsert(symTable, names[j], VAR, CHAR, level, addr, (*i)->lineNo);
 						}
 					}
 				}
@@ -500,11 +495,11 @@ int tableCheck(AST root, int level)
 		{
 			if ((*i)->lex_symbol == IDENT)
 			{
-				tableInsert(symTable, *((*i)->val.ident), PRO, (LexType)0, level, addr, (*i)->lineNo);
+				(*i)->tableItem = tableInsert(symTable, *((*i)->val.ident), PRO, (LexType)0, level, addr, (*i)->lineNo);
 			}
 			else if ((*i)->ast_type == ARGLIST)
 			{
-				addr->types = argsTypes(*i, level+1);
+				addr->types = argsTypes(*(root->symTable), *i, level+1);
 				addr->args = addr->types->size();
 			}
 		}
@@ -523,11 +518,10 @@ int tableCheck(AST root, int level)
 			if ((*i)->lex_symbol == IDENT)
 			{
 				name = *((*i)->val.ident);
-
 			}
 			else if ((*i)->ast_type == ARGLIST)
 			{
-				addr->types = argsTypes(*i, level+1);
+				addr->types = argsTypes(*(root->symTable), *i, level+1);
 				addr->args = addr->types->size();
 			}
 			else if ((*i)->lex_symbol == INT || (*i)->lex_symbol == CHAR)
@@ -542,17 +536,16 @@ int tableCheck(AST root, int level)
 		//遍历对每个子节点进行符号表填查
 		for (; i != root->children->end(); i++)
 		{
-			tableCheck(*i, level + 1);
+			tableCheck(*(root->symTable), *i, level + 1);
 		}
 		printTable(symTable);
 		std::cout<<std::endl<<std::endl;
-		tableClear(symTable, level+1);
 		return 0;
 	}
 	else if (root->ast_type == TERMINAL && root->lex_symbol == IDENT)
 	{
 		//当前节点是标识符
-		tableItem* item = tableFind(symTable, *(root->val.ident), level);
+		tableItem* item = tableFind(symTable, *(root->val.ident), root->parent);
 		if (item == NULL)
 		{
 			//符号表中没有当前标识符
@@ -568,7 +561,7 @@ int tableCheck(AST root, int level)
 		//遍历对每个子节点进行符号表填查
 		for (; i != root->children->end(); i++)
 		{
-			tableCheck(*i, level);
+			tableCheck(symTable, *i, level);
 		}
 		return 0;
 	}
@@ -580,7 +573,7 @@ int tableCheck(AST root, int level)
 	对形式参数表进行分析
 	t:语法树类型为ARGLIST的节点
 */
-std::vector<int>* argsTypes(AST_node t, int level)
+std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<int>* types = new std::vector<int>;
@@ -591,7 +584,7 @@ std::vector<int>* argsTypes(AST_node t, int level)
 		if ((*i)->ast_type == ARGS)
 		{
 			//当前节点是个参数段
-			args(*i, types, level);
+			args(symTable, *i, types, level);
 		}
 	}
 	return types;
@@ -601,7 +594,7 @@ std::vector<int>* argsTypes(AST_node t, int level)
 	对形式参数段进行分析
 	t:语法树类型为ARGS的节点
 */
-void args(AST_node t, std::vector<int> *types, int level)
+void args(Table &symTable, AST_node t, std::vector<int> *types, int level)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<std::string> names;

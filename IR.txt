@@ -1,0 +1,182 @@
+int,pi,3, 
+int,e,2, 
+char,target,g, 
+char,c,5, 
+
+int,left, , 
+int,right, , 
+int,mid, , 
+int,n, , 
+int,i, , 
+int,j, , 
+arraydef,name,int,30
+arraydef,arr,char,26
+char,k, , 
+char,x, , 
+char,flag, , 
+char,ans, , 
+arraydef,a,int,2
+arraydef,b,int,2
+
+procedure,search,3, 
+
+int,i, , 
+
+return, , , 
+
+procedure,mergesort,3, 
+
+int,i, , 
+int,j, , 
+int,k, , 
+int,x, , 
+int,flag, , 
+int,ans, , 
+
+:=,i,l, 
++,temp1,mid,1
+:=,j,temp1, 
+:=,k,l, 
+<=,temp2,i,mid
+ifFalse,Lable1,temp2, 
+<=,temp3,j,r
+ifFalse,Lable2,temp3, 
+Lable3: 
+:=,flag,0, 
+array,temp4,a,i
+array,temp5,a,j
+<=,temp6,temp4,temp5
+ifFalse,Lable4,temp6, 
+array,temp7,a,i
+:=,b,temp7,k
++,temp8,i,1
+:=,i,temp8, 
+goto,Lable5, , 
+Lable4: 
+array,temp9,a,j
+:=,b,temp9,k
+-,temp10,ans,k
+:=,ans,temp10, 
++,temp11,j,1
+:=,j,temp11, 
+Lable5: 
++,temp12,k,1
+:=,k,temp12, 
+<=,temp13,i,mid
+ifFalse,Lable6,temp13, 
+<=,temp14,j,r
+ifFalse,Lable7,temp14, 
+:=,flag,1, 
+Lable7: 
+Lable6: 
+=,temp15,flag,1
+if,Lable3,temp15, 
+Lable2: 
+Lable1: 
+>,temp16,i,mid
+ifFalse,Lable8,temp16, 
+:=,x,j, 
+Lable9: 
+<,temp17,x,r
+ifFalse,Lable10,temp17, 
+array,temp18,a,x
+:=,b,temp18,k
++,temp19,k,1
+:=,k,temp19, 
++,x,1, 
+goto,Lable9, , 
+Lable10: 
+goto,Lable11, , 
+Lable8: 
+:=,x,i, 
+Lable12: 
+<,temp20,x,mid
+ifFalse,Lable13,temp20, 
+array,temp21,a,x
+:=,b,temp21,k
++,temp22,k,1
+:=,k,temp22, 
++,x,1, 
+goto,Lable12, , 
+Lable13: 
+Lable11: 
+:=,x,l, 
+return, , , 
+
+procedure,merge,2, 
+
+int,mid, , 
+
+<,temp23,l,r
+ifFalse,Lable16,temp23, 
++,temp24,l,r
+/,temp25,temp24,2
+:=,mid,temp25, 
+param,mid, , 
+param,l, , 
+call, ,merge,2
++,temp26,mid,1
+param,r, , 
+param,temp26, , 
+call, ,merge,2
+param,mid, , 
+param,r, , 
+param,l, , 
+call, ,mergesort,3
+Lable16: 
+return, , , 
+
+function,binsearch,3,int
+
+int,mid, , 
+
+<=,temp27,left,right
+ifFalse,Lable17,temp27, 
++,temp28,left,right
+/,temp29,temp28,2
+:=,mid,temp29, 
+Lable17: 
+array,temp30,arr,mid
+=,temp31,target,temp30
+ifFalse,Lable18,temp31, 
+write,0,Find the target, 
+goto,Lable19, , 
+Lable18: 
+array,temp32,arr,mid
+<,temp33,target,temp32
+ifFalse,Lable20,temp33, 
+-,temp34,mid,1
+param,target, , 
+param,temp34, , 
+param,left, , 
+call,temp35,binsearch,3
++,temp36,temp35,5
+:=,binsearch,temp36, 
+goto,Lable21, , 
+Lable20: 
++,temp37,mid,1
+param,target, , 
+param,right, , 
+param,temp37, , 
+call, ,binsearch,3
+Lable21: 
+Lable19: 
+return, , , 
+
+read,n, , 
+:=,left,0, 
+:=,right,n, 
+:=,i,0, 
+param,right, , 
+param,0, , 
+call, ,merge,2
+param,target, , 
+param,right, , 
+param,0, , 
+call, ,search,3
+param,c, , 
+param,right, , 
+param,0, , 
+call, ,binsearch,3
+return, , , 
+

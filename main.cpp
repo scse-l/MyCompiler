@@ -10,7 +10,6 @@
 	全局变量声明
 */
 std::map<std::string, int> keywordTable;							//保留字表
-Table symTable;														//符号表
 std::vector<std::string> errorMsg;									//错误记录		
 
 unsigned int errorCount = 0;			//错误总数

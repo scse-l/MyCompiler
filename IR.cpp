@@ -45,18 +45,48 @@ std::string* IREmit(AST_node root)
 		//过程调用语句
 		callStatEmit(root);
 	}
-	else if (root->ast_type == CONSTDEF)
+	else if (root->ast_type == CONSTDECL)
 	{
 		//常量声明
-		constDefEmit(root);
+		for (std::vector<AST_node>::iterator i = root->children->begin();
+		i != root->children->end(); i++)
+		{
+			if((*i)->ast_type != TERMINAL)
+				constDefEmit(*i);
+		}
+		printf("\n");
 	}
-	else if (root->ast_type == VARDEF)
+	else if (root->ast_type == VARDECL)
 	{
 		//变量声明
-		varDefEmit(root);
+		for (std::vector<AST_node>::iterator i = root->children->begin() + 1;
+		i != root->children->end(); i++)
+		{
+			varDefEmit(*i);
+		}
+		printf("\n");
 	}
-	else if(root->ast_type == PROGRAM || root->ast_type == STATS ||
-			root->ast_type == PRODECL || root->ast_type == FUNDECL)
+	else if (root->ast_type == PRODECL)
+	{
+		//过程声明
+		for (std::vector<AST_node>::iterator i = root->children->begin();
+		i != root->children->end(); i++
+			)
+		{
+			proDefEmit(*i);
+		}
+	}
+	else if (root->ast_type == FUNDECL)
+	{
+		//函数声明
+		for (std::vector<AST_node>::iterator i = root->children->begin();
+		i != root->children->end(); i++
+			)
+		{
+			funDefEmit(*i);
+		}
+	}
+	else if(root->ast_type == STATS)
 	{
 		for (std::vector<AST_node>::iterator i = root->children->begin();
 		i != root->children->end(); i++
@@ -64,6 +94,17 @@ std::string* IREmit(AST_node root)
 		{
 			res = IREmit(*i);
 		}
+	}
+	else if (root->ast_type == PROGRAM)
+	{
+		for (std::vector<AST_node>::iterator i = root->children->begin();
+		i != root->children->end(); i++
+			)
+		{
+			res = IREmit(*i);
+		}
+		emit("return", NULL, NULL, NULL);
+		printf("\n");
 	}
 	return res;
 }
@@ -74,20 +115,29 @@ std::string* constDefEmit(AST_node t)
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::string *res = NULL, *op1 = NULL, *op2 = NULL, op;
 
+	if (i == t->children->end() || (*i)->lex_symbol != IDENT)
+	{
+		return NULL;
+	}
+
 	if ((*i)->lex_symbol == IDENT)
 	{
 		res = (*i)->val.ident;
-		op = "const";
-		if ((*i)->tableItem->attribute == CHAR)
+		tableItem *item = tableFind(*(*i)->symTable, *res, (*i)->parent);
+		if (item->attribute == CHAR)
 		{
-			op1 = (*i)->val.ident;
-			op2 = new std::string("char");
+			char c[2];
+			c[0] = *((char*)item->addr);
+			c[1] = '\0';
+			op1 = new std::string(c);
+			op = "char";
 		}
 		else
 		{
-			char _s[5], *s = itoa((*i)->val.value, _s, 10);
+			char _s[5], *s;
+			s = itoa(*((int*)item->addr), _s, 10);
 			op1 = new std::string(s);
-			op2 = new std::string("int");
+			op = "int";
 		}
 	}
 	i += 2;
@@ -99,35 +149,72 @@ std::string* constDefEmit(AST_node t)
 std::string* varDefEmit(AST_node t)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
-	std::vector<std::string*> names;
-
-	std::string *res = NULL, *op1 = NULL, *op2 = NULL, op;
+	std::string *name = NULL, *op1 = NULL, *op2 = NULL, op;
 
 	for (; i != t->children->end(); i++)
 	{
 		if ((*i)->lex_symbol == IDENT)
 		{
-			names.push_back((*i)->val.ident);
-			op = "var";
-			if ((*i)->tableItem->attribute == CHAR)
+			name = (*i)->val.ident;
+			tableItem *item = tableFind(*(*i)->symTable, *(*i)->val.ident, (*i)->parent);
+			if (item->attribute == CHAR)
 			{
-				op1 = (*i)->val.ident;
-				op2 = new std::string("char");
+				op = "char";
+			}
+			else if(item->attribute == INT)
+			{
+				op = "int";
 			}
 			else
 			{
-				char _s[5], *s = itoa((*i)->val.value, _s, 10);
-				op1 = new std::string(s);
-				op2 = new std::string("int");
+				op = "arraydef";
+				op1 = ((arrayTemplet*)item->addr)->type == INT ? new std::string("int")
+																: new std::string("char");
+				char _s[5], *s = itoa(((arrayTemplet*)item->addr)->length, _s, 10);
+				op2 = new std::string(s);
 			}
+			emit(op, name, op1, op2);
 		}
 
 	}
-	i += 2;
-	emit(op, res, op1, op2);
-	return res;
+	return name;
 }
 
+//过程声明的四元式生成
+//t的类型为PRODEF
+std::string* proDefEmit(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();	//t的子节点是prohead和program
+	std::string *name = (*i)->children->at(1)->val.ident;
+	tableItem *item = tableFind(*(t->symTable), *name, t->parent);
+
+	char _s[5];
+	char *s = itoa(((procedureTemplet*)item->addr)->args, _s, 10);
+
+	i++;
+	emit("procedure", name, new std::string(s), NULL);
+	IREmit(*i);
+
+	return NULL;
+}
+
+//函数声明的四元式生成
+//t的类型为FUNDEF
+std::string* funDefEmit(AST_node t)
+{
+	std::vector<AST_node>::iterator i = t->children->begin();	//t的子节点是prohead和program
+	std::string *name = (*i)->children->at(1)->val.ident;
+	tableItem *item = tableFind(*(t->symTable), *name, t->parent);
+
+	char _s[5];
+	char *s = itoa(((functionTemplet*)item->addr)->args, _s, 10);
+	std::string *op2 = NULL;
+	op2 = item->attribute == INT ? new std::string("int") : new std::string("char");
+	emit("function", name, new std::string(s), op2);
+	i++;
+	IREmit(*i);
+	return NULL;
+}
 
 //赋值语句的四元式生成
 //<赋值语句>::=<标识符>:=<表达式>|<函数标识符>:=<表达式>|<标识符>'['<表达式>']':=<表达式>
@@ -248,11 +335,12 @@ std::string* forStatEmit(AST_node t)
 		{
 			op2 = expEmit(*i);
 		}
-		else if ((*i)->ast_type == STATS)
+		else if ((*i)->lex_symbol == DO)
 		{
+			i++;
 			putLable(conditionLable);
 			res = makeTempReg();
-			emit(relop,res,op1,op2);
+			emit(relop, res, op1, op2);
 			emit("ifFalse", endLable, res, NULL);
 			IREmit(*i);
 			*op2 = "1";
@@ -260,6 +348,18 @@ std::string* forStatEmit(AST_node t)
 			emit("goto", conditionLable, NULL, NULL);
 			putLable(endLable);
 		}
+		//else if ((*i)->ast_type == STATS)
+		//{
+		//	putLable(conditionLable);
+		//	res = makeTempReg();
+		//	emit(relop,res,op1,op2);
+		//	emit("ifFalse", endLable, res, NULL);
+		//	IREmit(*i);
+		//	*op2 = "1";
+		//	emit(stepOp, op1, op2, NULL);
+		//	emit("goto", conditionLable, NULL, NULL);
+		//	putLable(endLable);
+		//}
 	}
 	return NULL;
 }

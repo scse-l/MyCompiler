@@ -10,6 +10,10 @@ typedef enum
 } IR_INS;
 
 std::string* IREmit(AST_node root);
+std::string* constDefEmit(AST_node t);
+std::string* varDefEmit(AST_node t);
+std::string* proDefEmit(AST_node t);
+std::string* funDefEmit(AST_node t);
 std::string* assignStatEmit(AST_node t);
 std::string* ifStatEmit(AST_node t);
 std::string* doStatEmit(AST_node t);

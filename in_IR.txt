@@ -1,26 +1,13 @@
 const pi = 3, e = 2,target = 'g',c = '5';
 
-var left,right,mid,n,i:integer;name:array[30] of integer;arr:array[26] of char;
-	j,k,x,flag,ans:char;a,b:array[2] of integer;
+var left,right,mid,n,i,j:integer;name:array[30] of integer;arr:array[26] of char;
+	k,x,flag,ans:char;a,b:array[2] of integer;
 
-function binsearch(left,right:integer;target:char) : integer;
-	var mid:integer;
-	begin
-		if left <= right
-		then
-			mid := (left + right) / 2;
-		if target = arr[mid]
-		then
-			write("Find the target")
-		else if	target < arr[mid]
-			then
-				binsearch := binsearch(left,mid-1,target) + 5
-			else
-				binsearch(mid+1,right,target)
-	end;
 begin
 	read(n);
-	write(j);
+	left := 0;
+	right := n;
 
-
+	for i := 0 to right do
+		read(arr);
 end.

@@ -19,7 +19,7 @@ enum AST_Type_e
 {
 	PROGRAM, STATEMENT, TERMINAL, ROOT,
 	IFSTAT, FORSTAT, ASSIGNSTAT, WRITESTAT, DOSTAT, READSTAT, STATS, EMPTY,CALL,
-	CONSTDECL, CONSTDEF, VARDECL, VARDEF, PRODECL, PROHEAD, FUNDECL, FUNHEAD,
+	CONSTDECL, CONSTDEF, VARDECL, VARDEF, PRODECL, PRODEF, PROHEAD, FUNDECL, FUNDEF, FUNHEAD,
 	ARGLIST,ARGS,EXPRESSION, TERM, FACTOR, CONDITION
 
 };
@@ -48,6 +48,19 @@ struct AST_t {
 	tableItem* tableItem;										//记录当前节点在符号表中的位置
 	Table *symTable;											//如果当前节点是Program，则该节点存放改分程序的符号表，其余类型则为NULL
 };
+
+//符号表操作
+/*
+查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
+t:待查找的符号表
+name:欲查找的符号
+parent:当前节点的父节点
+*/
+tableItem* tableFind(Table &t, std::string name, AST_node parent);
+
+
+
+
 /*
 语法树相关操作
 */

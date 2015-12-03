@@ -3,11 +3,11 @@
 	 包括：常量说明部分、变量说明部分、过程说明部分、函数说明部分
 */
 
-#include "global.h"
 #include "support.h"
 #include "lex.h"
 #include "declaration.h"
 #include "program.h"
+#include "AST.h"
 
 extern int symbol;
 extern std::string ident;
@@ -180,18 +180,26 @@ AST_node prodecl(AST_node parent)
 	AST_node t = makeNode(PRODECL, parent);
 	while (symbol == PRO)
 	{
-		printf("----------------PROCEDURE DECLARATION BEGINS--------------\n");
-		//过程声明开始
-		prohead(t);					//过程首部语法分析函数
-		program(t);					//分程序语法分析函数
-		if (!match(SEMICOLON,t))
-		{
-			error("Missing Semicolon After Procedure");
-			recovery(3, PRO, FUN, BEGIN);
-		}
+		prodef(t);
 	}
 	printf("----------------ALL PROCEDURE DECLARATION END--------------\n");
 	return 0;
+}
+
+//过程声明
+AST_node prodef(AST_node parent)
+{
+	AST_node t = makeNode(PRODEF, parent);
+	printf("----------------PROCEDURE DECLARATION BEGINS--------------\n");
+	//过程声明开始
+	prohead(t);					//过程首部语法分析函数
+	program(t);					//分程序语法分析函数
+	if (!match(SEMICOLON, t))
+	{
+		error("Missing Semicolon After Procedure");
+		recovery(3, PRO, FUN, BEGIN);
+	}
+	return t;
 }
 
 //过程首部
@@ -300,17 +308,25 @@ AST_node fundecl(AST_node parent)
 	AST_node t = makeNode(FUNDECL,parent);
 	while (symbol == FUN)
 	{
-		printf("----------------FUNCTION DECLARATION BEGINS--------------\n");
-		//函数声明开始
-		funhead(t);
-		program(t);	
-		if (!match(SEMICOLON,t))
-		{
-			error("Missing Semicolon After Function");
-			recovery(2, FUN, BEGIN);
-		}
+		fundef(t);
 	}
 	printf("----------------ALL FUNCTION DECLARATION END--------------\n");
+	return t;
+}
+
+AST_node fundef(AST_node parent)
+{
+	AST_node t = makeNode(FUNDEF, parent);
+
+	printf("----------------FUNCTION DECLARATION BEGINS--------------\n");
+	//函数声明开始
+	funhead(t);
+	program(t);
+	if (!match(SEMICOLON, t))
+	{
+		error("Missing Semicolon After Function");
+		recovery(2, FUN, BEGIN);
+	}
 	return t;
 }
 
