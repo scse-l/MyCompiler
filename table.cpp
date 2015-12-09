@@ -64,7 +64,7 @@ tableItem* tableInsert(Table &t, std::string name, LexType type, LexType attribu
 		item->addr = (void *)addr;
 		item->offset = 0;
 		List->push_back(*item);
-		return item;
+		return &(List->back());
 	}
 	else
 	{
@@ -78,7 +78,8 @@ tableItem* tableInsert(Table &t, std::string name, LexType type, LexType attribu
 		item->offset = 0;
 		List->push_back(*item);
 		t.insert(std::pair<std::string, itemList>::pair(name, *List));
-		return item;
+		List = &(t.find(name)->second);
+		return &(List->back());
 	}
 	return NULL;
 }

@@ -4,6 +4,7 @@
 #include "sematic.h"
 #include "syntax.h"
 #include "IR.h"
+#include "asm.h"
 #pragma warning(disable:4996)
 
 /*
@@ -62,8 +63,15 @@ int main()
 	}
 	printf("Sematic Analysis Completed!\n\n");
 
-	//freopen("IR.txt", "w", stdout);
+	//生成四元式
+	freopen("IR.txt", "w", stdout);
 	IREmit(root->children->at(0));
+	
+	//生成汇编
+	freopen("IR.txt", "r", stdin);
+	freopen("asm.txt", "w", stdout);
+	asmMaker(root,NULL);
+
 	return 0;
 }
 

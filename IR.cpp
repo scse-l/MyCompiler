@@ -666,9 +666,9 @@ std::string *makeTempReg()
 std::string* emit(std::string op, std::string *res, std::string *op1, std::string *op2)
 {
 	printf("%s,%s,%s,%s\n",	 op.c_str(), 
-							(res == NULL) ? " " : res->c_str(),
-							(op1 == NULL) ? " " : op1->c_str(),
-							(op2 == NULL) ? " " : op2->c_str());
+							(res == NULL) ? "" : res->c_str(),
+							(op1 == NULL) ? "" : op1->c_str(),
+							(op2 == NULL) ? "" : op2->c_str());
 	return res;
 }
 
@@ -679,9 +679,9 @@ std::string* emit(std::string *lable, std::string op, std::string *res, std::str
 {
 	printf("%s: %s,%s,%s,%s\n", lable->c_str(),
 								op.c_str(),
-								(res == NULL) ? " " : res->c_str(),
-								(op1 == NULL) ? " " : op1->c_str(),
-								(op2 == NULL) ? " " : op2->c_str());
+								(res == NULL) ? "" : res->c_str(),
+								(op1 == NULL) ? "" : op1->c_str(),
+								(op2 == NULL) ? "" : op2->c_str());
 	return res;
 }
 

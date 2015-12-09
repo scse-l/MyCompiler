@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>四元式</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<style type="text/css">
+/* GitHub stylesheet for MarkdownPad (http://markdownpad.com) */
+/* Author: Nicolas Hery - http://nicolashery.com */
+/* Version: b13fe65ca28d2e568c6ed5d7f06581183df8f2ff */
+/* Source: https://github.com/nicolahery/markdownpad-github */
+
+/* RESET
+=============================================================================*/
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* BODY
+=============================================================================*/
+
+body {
+  font-family: Helvetica, arial, freesans, clean, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fff;
+  padding: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+body>*:first-child {
+  margin-top: 0 !important;
+}
+
+body>*:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* BLOCKS
+=============================================================================*/
+
+p, blockquote, ul, ol, dl, table, pre {
+  margin: 15px 0;
+}
+
+/* HEADERS
+=============================================================================*/
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 20px 0 10px;
+  padding: 0;
+  font-weight: bold;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 tt, h1 code, h2 tt, h2 code, h3 tt, h3 code, h4 tt, h4 code, h5 tt, h5 code, h6 tt, h6 code {
+  font-size: inherit;
+}
+
+h1 {
+  font-size: 28px;
+  color: #000;
+}
+
+h2 {
+  font-size: 24px;
+  border-bottom: 1px solid #ccc;
+  color: #000;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+h4 {
+  font-size: 16px;
+}
+
+h5 {
+  font-size: 14px;
+}
+
+h6 {
+  color: #777;
+  font-size: 14px;
+}
+
+body>h2:first-child, body>h1:first-child, body>h1:first-child+h2, body>h3:first-child, body>h4:first-child, body>h5:first-child, body>h6:first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+h1+p, h2+p, h3+p, h4+p, h5+p, h6+p {
+  margin-top: 10px;
+}
+
+/* LINKS
+=============================================================================*/
+
+a {
+  color: #4183C4;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* LISTS
+=============================================================================*/
+
+ul, ol {
+  padding-left: 30px;
+}
+
+ul li > :first-child, 
+ol li > :first-child, 
+ul li ul:first-of-type, 
+ol li ol:first-of-type, 
+ul li ol:first-of-type, 
+ol li ul:first-of-type {
+  margin-top: 0px;
+}
+
+ul ul, ul ol, ol ol, ol ul {
+  margin-bottom: 0;
+}
+
+dl {
+  padding: 0;
+}
+
+dl dt {
+  font-size: 14px;
+  font-weight: bold;
+  font-style: italic;
+  padding: 0;
+  margin: 15px 0 5px;
+}
+
+dl dt:first-child {
+  padding: 0;
+}
+
+dl dt>:first-child {
+  margin-top: 0px;
+}
+
+dl dt>:last-child {
+  margin-bottom: 0px;
+}
+
+dl dd {
+  margin: 0 0 15px;
+  padding: 0 15px;
+}
+
+dl dd>:first-child {
+  margin-top: 0px;
+}
+
+dl dd>:last-child {
+  margin-bottom: 0px;
+}
+
+/* CODE
+=============================================================================*/
+
+pre, code, tt {
+  font-size: 12px;
+  font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+
+code, tt {
+  margin: 0 0px;
+  padding: 0px 0px;
+  white-space: nowrap;
+  border: 1px solid #eaeaea;
+  background-color: #f8f8f8;
+  border-radius: 3px;
+}
+
+pre>code {
+  margin: 0;
+  padding: 0;
+  white-space: pre;
+  border: none;
+  background: transparent;
+}
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px;
+}
+
+pre code, pre tt {
+  background-color: transparent;
+  border: none;
+}
+
+kbd {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #DDDDDD;
+    background-image: linear-gradient(#F1F1F1, #DDDDDD);
+    background-repeat: repeat-x;
+    border-color: #DDDDDD #CCCCCC #CCCCCC #DDDDDD;
+    border-image: none;
+    border-radius: 2px 2px 2px 2px;
+    border-style: solid;
+    border-width: 1px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    line-height: 10px;
+    padding: 1px 4px;
+}
+
+/* QUOTES
+=============================================================================*/
+
+blockquote {
+  border-left: 4px solid #DDD;
+  padding: 0 15px;
+  color: #777;
+}
+
+blockquote>:first-child {
+  margin-top: 0px;
+}
+
+blockquote>:last-child {
+  margin-bottom: 0px;
+}
+
+/* HORIZONTAL RULES
+=============================================================================*/
+
+hr {
+  clear: both;
+  margin: 15px 0;
+  height: 0px;
+  overflow: hidden;
+  border: none;
+  background: transparent;
+  border-bottom: 4px solid #ddd;
+  padding: 0;
+}
+
+/* TABLES
+=============================================================================*/
+
+table th {
+  font-weight: bold;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 6px 13px;
+}
+
+table tr {
+  border-top: 1px solid #ccc;
+  background-color: #fff;
+}
+
+table tr:nth-child(2n) {
+  background-color: #f8f8f8;
+}
+
+/* IMAGES
+=============================================================================*/
+
+img {
+  max-width: 100%
+}
+</style>
+<base href='file:\\\D:\大学文件\个人资料\大三上\编译\2015年编译技术课设\作业\MyCompiler\MyCompiler\'/>
+</head>
+<body>
+<h2>四元式</h2>
+<h3>需要四元式运算的地方</h3>
+<ul>
+<li>声明语句</li>
+<li>表达式</li>
+<li>语句</li>
+</ul>
+<h3>四元式设计</h3>
+<h4>声明</h4>
+<ul>
+<li>
+常量声明
+<ul>
+<li>四元式：<strong>int,res,op1,op2， char,res,op1,op2</strong></li>
+<li>其中res为常量名，op1为常量的值，op2为偏移量</li>
+<li>含义：声明一个类型为int,char的常量</li>
+</ul>
+</li>
+<li>
+变量声明
+<ul>
+<li>四元式：<strong>int,name,op1,op2, char,name,op1,op2, arraydef,name,op1,op2</strong></li>
+<li>其中对于int和char类型，name为变量名，op1，op2为空；对于数组类型，op1为数组元素的类型，op2为数组所占空间大小</li>
+</ul>
+</li>
+<li>
+过程声明
+<ul>
+<li>四元式：<strong>procedure，res，op1，op2</strong>，其中res为过程名，op1为过程的参数个数，op2为空</li>
+</ul>
+</li>
+<li>
+函数声明
+<ul>
+<li>四元式：<strong>function，res，op1，op2</strong>，其中res为函数名，op1为过程的参数个数，op2为返回值类型</li>
+</ul>
+</li>
+</ul>
+<h4>表达式</h4>
+<ul>
+<li>运算：+,-,*,/</li>
+<li>
+赋值：
+<ul>
+<li>四元式：<strong>:=, res, op1, op2</strong></li>
+<li>含义： </li>
+<li>当op2为空时：<strong>res := op1</strong></li>
+<li>当op2不为空时表示对数组元素赋值：<strong>:=,res,op1, op2</strong>，其中res是数组名，含义：<strong>res[op2] := op1</strong>;</li>
+</ul>
+</li>
+<li>
+访问数组元素:
+<ul>
+<li>四元式：<strong>arr,res,op1,op2</strong>，其中op1为数组变量,op2为数组下标,含义：<strong>res := op1[op2]</strong></li>
+</ul>
+</li>
+<li>
+关系运算符： &lt;,&lt;=,&lt;&gt;,&gt;,&gt;=,=
+<ul>
+<li>四元式：<strong>relop,res,op1,op2</strong></li>
+<li>含义：<strong>res := op1 relop op2</strong></li>
+<li>注意：<strong>将等值关系比较与赋值号区分！！！！！！！！！</strong></li>
+</ul>
+</li>
+</ul>
+<h4>语句</h4>
+<ul>
+<li>赋值语句</li>
+<li>条件语句</li>
+<li>当循环语句</li>
+<li>for循环语句</li>
+<li>复合语句</li>
+<li>过程调用语句(函数调用语句类似)</li>
+<li>读语句</li>
+<li>写语句</li>
+</ul>
+<h5>控制流语句</h5>
+<ul>
+<li>
+if-then[-else]：
+<ul>
+<li><strong>if,L,x</strong>:其中L为标号，x为操作数，含义：如果x的值为真，则跳转至标号L</li>
+<li><strong>ifFalse,L,x</strong>:其中L为标号，x为操作数，含义：如果x的值为假，则跳转至标号L</li>
+<li><strong>L,if,x,op,y</strong>:其中L为标号，x,y为操作数，op为关系运算符，含义：如果x op y为真则跳转至标号L</li>
+</ul>
+</li>
+<li>do..while</li>
+<li>for</li>
+</ul>
+<h5>与运行时相关语句</h5>
+<ul>
+<li>
+过程调用语句(函数调用类似)
+<ul>
+<li>四元式：<strong>call,retVal,name,args</strong>,其中retVal为存放返回值的变量地址(过程调用则为NULL),name为过程(函数)名，args为参数个数</li>
+<li>含义：retVal = name(arg1,arg2...)</li>
+</ul>
+</li>
+<li>
+返回语句
+<ul>
+<li>四元式：<strong>return,res,op1,op2</strong>，其中res，op1，op2均为null</li>
+</ul>
+</li>
+<li>
+写语句
+<ul>
+<li>四元式：<strong>write,option,addr</strong></li>
+<li>含义：</li>
+<li>option为0时表示输出字符串，addr为要输出的字符串所在的地址</li>
+<li>option为1时表示输出字符，addr为要输出的字符所在的地址</li>
+<li>option为2时表示输出整型数，addr为要输出的值所在的地址</li>
+</ul>
+</li>
+<li>
+读语句
+<ul>
+<li>四元式：<strong>read,addr</strong></li>
+<li>含义：将读入数据存到addr中</li>
+</ul>
+</li>
+</ul>
+<h3>其余</h3>
+<ul>
+<li>赋值语句</li>
+<li>复合语句</li>
+</ul>
+
+</body>
+</html>
+<!-- This document was created with MarkdownPad, the Markdown editor for Windows (http://markdownpad.com) -->

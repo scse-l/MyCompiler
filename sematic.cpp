@@ -380,7 +380,12 @@ LexType factorCheck(AST_node factor)
 }
 
 
-//符号表填查函数
+/*
+	符号表填查函数
+	symTable: 当前节点所属的符号表
+	root: 要进行tableCheck的节点
+	level：当前节点所属的层数
+*/
 int tableCheck(Table &symTable, AST root, int level)
 {
 	std::vector<AST_node>::iterator i = root->children->begin();
@@ -577,6 +582,7 @@ std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<int>* types = new std::vector<int>;
+	int offset = 8;
 
 	//<形式参数表>:: = '('<形式参数段>{; <形式参数段>}')'
 	for (; i != t->children->end(); i++)
@@ -584,7 +590,7 @@ std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 		if ((*i)->ast_type == ARGS)
 		{
 			//当前节点是个参数段
-			args(symTable, *i, types, level);
+			args(symTable, *i, types, level, &offset);
 		}
 	}
 	return types;
@@ -594,7 +600,7 @@ std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 	对形式参数段进行分析
 	t:语法树类型为ARGS的节点
 */
-void args(Table &symTable, AST_node t, std::vector<int> *types, int level)
+void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *startoffset)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<std::string> names;
@@ -613,11 +619,16 @@ void args(Table &symTable, AST_node t, std::vector<int> *types, int level)
 			break;
 		}
 	}
+	int space = ((*i)->lex_symbol == INT) ? 4 : 2;
+	int n = 0;
 	while (cnt > 0)
 	{
 		types->push_back((*i)->lex_symbol);
-		tableInsert(symTable, names[cnt - 1], VAR, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		tableItem* item = tableInsert(symTable, names[n], VAR, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		item->offset = -*startoffset;
+		*startoffset += space;
 		cnt--;
+		n++;
 	}
 
 	return;
