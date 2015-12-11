@@ -194,7 +194,8 @@ AST_node stat_for(AST_node t)
 		//因为可能是空语句，所以不需要错误恢复
 		//recovery(IDENT, IF, FOR, BEGIN, READ, WRITE);
 	}
-	statement(t);
+	AST_node stat = makeNode(STATS, t);
+	statement(stat);
 	printf("----------------End of For Loop--------------\n");
 	return t;
 }
@@ -206,7 +207,8 @@ AST_node stat_do(AST_node t)
 	printf("----------------Do While Loop--------------\n");
 	t->ast_type = DOSTAT;
 	match(DO,t);
-	statement(t);
+	AST_node stat = makeNode(STATS, t);
+	statement(stat);
 	if (!match(WHILE,t))
 	{
 		error("Missing while clause");

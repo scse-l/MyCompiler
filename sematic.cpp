@@ -206,13 +206,17 @@ int conditionCheck(AST_node t)
 	return 0;
 }
 
+/*
+	对for语句进行类型检查
+	<for循环语句>::=for <标识符>:=<表达式>（downto|to）<表达式>do<语句>//步长为1
+*/
 int forStatCheck(AST_node t)
 {
 	std::vector<AST_node>::iterator i = t->children->begin()+1;
 	LexType type;
 	if ((*i)->tableItem == NULL)
 	{
-		return 1;
+		error((*i)->lineNo, "Undefined Identifier");
 	}
 	type = (*i)->tableItem->attribute;
 	i = i + 2;
@@ -225,6 +229,8 @@ int forStatCheck(AST_node t)
 	{
 		error((*i)->lineNo, "Type not match");
 	}
+	i = i + 2;
+	typeCheck(*i);
 	return 0;
 }
 
@@ -456,7 +462,7 @@ int tableCheck(Table &symTable, AST root, int level)
 					}
 					else
 					{
-						space = ((arrayTemplet *)addr)->type * 2;
+						space = ((arrayTemplet *)addr)->type * 4;
 					}
 					for (unsigned int j = 0; j < names.size(); j++)
 					{
@@ -619,7 +625,7 @@ void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *
 			break;
 		}
 	}
-	int space = ((*i)->lex_symbol == INT) ? 4 : 2;
+	int space = 4;
 	int n = 0;
 	while (cnt > 0)
 	{

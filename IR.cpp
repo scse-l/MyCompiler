@@ -257,7 +257,31 @@ std::string* ifStatEmit(AST_node t)
 		{
 			//当前节点是条件
 			res = conditionEmit(*i);
-			emit("ifFalse", lable, res, NULL);
+			if (*res == "ife")
+			{
+				*res = "ifne";
+			}
+			else if (*res == "ifne")
+			{
+				*res = "ife";
+			}
+			else if (*res == "ifl")
+			{
+				*res = "ifge";
+			}
+			else if (*res == "ifge")
+			{
+				*res = "ifl";
+			}
+			else if (*res == "ifg")
+			{
+				*res = "ifle";
+			}
+			else
+			{
+				*res = "ifg";
+			}
+			emit(*res, lable, NULL, NULL);
 		}
 		else if ((*i)->lex_symbol == THEN)
 		{
@@ -299,7 +323,7 @@ std::string* doStatEmit(AST_node t)
 		else if ((*i)->ast_type == CONDITION)
 		{
 			res = conditionEmit(*i);
-			emit("if", lable, res, NULL);
+			emit(*res, lable, NULL, NULL);
 		}
 	}
 	return res;
@@ -323,13 +347,13 @@ std::string* forStatEmit(AST_node t)
 		}
 		else if ((*i)->lex_symbol == DOWNTO)
 		{
-			relop = ">";
-			stepOp = "-";
+			relop = "ifl";
+			stepOp = "dec";
 		}
 		else if ((*i)->lex_symbol == TO)
 		{
-			relop = "<";
-			stepOp = "+";
+			relop = "ifg";
+			stepOp = "inc";
 		}
 		else if((*i)->ast_type == EXPRESSION)
 		{
@@ -339,27 +363,13 @@ std::string* forStatEmit(AST_node t)
 		{
 			i++;
 			putLable(conditionLable);
-			res = makeTempReg();
-			emit(relop, res, op1, op2);
-			emit("ifFalse", endLable, res, NULL);
+			emit("cmp", op1, op2, NULL);
+			emit(relop, endLable, NULL, NULL);
 			IREmit(*i);
-			*op2 = "1";
-			emit(stepOp, op1, op2, NULL);
+			emit(stepOp, op1, NULL, NULL);
 			emit("goto", conditionLable, NULL, NULL);
 			putLable(endLable);
 		}
-		//else if ((*i)->ast_type == STATS)
-		//{
-		//	putLable(conditionLable);
-		//	res = makeTempReg();
-		//	emit(relop,res,op1,op2);
-		//	emit("ifFalse", endLable, res, NULL);
-		//	IREmit(*i);
-		//	*op2 = "1";
-		//	emit(stepOp, op1, op2, NULL);
-		//	emit("goto", conditionLable, NULL, NULL);
-		//	putLable(endLable);
-		//}
 	}
 	return NULL;
 }
@@ -457,38 +467,39 @@ std::string* callStatEmit(AST_node t)
 std::string* conditionEmit(AST_node t)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
-	std::string op, *op1, *op2;
+	std::string *op, *op1, *op2;
 	
 	op1 = expEmit(*i);
 	i++;
 	if ((*i)->lex_symbol == LESS)
 	{
-		op = "<";
+		op = new std::string("ifl");
 	}
 	else if ((*i)->lex_symbol == LEQ)
 	{
-		op = "<=";
+		op = new std::string("ifle");
 	}
 	else if ((*i)->lex_symbol == NEQ)
 	{
-		op = "<>";
+		op = new std::string("ifne");
 	}
 	else if ((*i)->lex_symbol == GREATER)
 	{
-		op = ">";
+		op = new std::string("ifg");
 	}
 	else if ((*i)->lex_symbol == GEQ)
 	{
-		op = ">=";
+		op = new std::string("ifge");
 	}
 	else
 	{
-		op = "=";
+		op = new std::string("ife");
 	}
 	i++;
 	op2 = expEmit(*i);
+	emit(*new std::string("cmp"), op1, op2, NULL);
 
-	return emit(op, makeTempReg(), op1, op2);
+	return  op;
 }
 
 /*
