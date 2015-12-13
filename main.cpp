@@ -57,7 +57,7 @@ void mergeFile(char *file1, char *file2, char *file3)
 		putchar(c);
 	}
 	//代码段
-	printf("\n.code\n");
+	printf("\n\n.code\n");
 	freopen(file3, "r", stdin);
 	while ((c = getchar()) != EOF)
 	{

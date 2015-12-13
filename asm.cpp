@@ -640,6 +640,11 @@ int asmMaker(AST_node cur, AST_node parent)
 			emitASM(new std::string("pop"), new std::string("ebp"), NULL);
 			emitASM(new std::string("ret"), NULL, NULL);
 			printf("\n");
+			if (parent == NULL)
+			{
+				fclose(data);
+				fclose(offsetTable);
+			}
 			return 0;
 		}
 		else if (op != "")
@@ -651,9 +656,6 @@ int asmMaker(AST_node cur, AST_node parent)
 		op1.clear();
 		op2.clear();
 	}
-		
-	fclose(data);
-	fclose(offsetTable);
 
 	return 0;
 }
