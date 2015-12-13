@@ -74,14 +74,13 @@ void printAST(AST_node root, int lev);
 typedef struct {
 	int args;						//记录参数的个数
 	std::vector<int>* types;		//记录参数的类型
-
+	int totalSpace;
 } procedureTemplet;
 
 typedef struct {
 	int args;						//记录参数的个数
 	std::vector<int>* types;		//记录参数的类型
-
-
+	int totalSpace;
 } functionTemplet;
 
 typedef struct {

@@ -345,15 +345,7 @@ img {
 <li>
 访问数组元素:
 <ul>
-<li>四元式：<strong>arr,res,op1,op2</strong>，其中op1为数组变量,op2为数组下标,含义：<strong>res := op1[op2]</strong></li>
-</ul>
-</li>
-<li>
-关系运算符： &lt;,&lt;=,&lt;&gt;,&gt;,&gt;=,=
-<ul>
-<li>四元式：<strong>relop,res,op1,op2</strong></li>
-<li>含义：<strong>res := op1 relop op2</strong></li>
-<li>注意：<strong>将等值关系比较与赋值号区分！！！！！！！！！</strong></li>
+<li>四元式：<strong>array,res,op1,op2</strong>，其中op1为数组变量,op2为数组下标,含义：<strong>res := op1[op2]</strong></li>
 </ul>
 </li>
 </ul>
@@ -371,14 +363,25 @@ img {
 <h5>控制流语句</h5>
 <ul>
 <li>
-if-then[-else]：
+<strong>cmp,op1,op2,null</strong>
 <ul>
-<li><strong>if,L,x</strong>:其中L为标号，x为操作数，含义：如果x的值为真，则跳转至标号L</li>
-<li><strong>ifFalse,L,x</strong>:其中L为标号，x为操作数，含义：如果x的值为假，则跳转至标号L</li>
-<li><strong>L,if,x,op,y</strong>:其中L为标号，x,y为操作数，op为关系运算符，含义：如果x op y为真则跳转至标号L</li>
+<li>含义：比较op1和op2并根据比较结果设置机器状态字中的条件码。</li>
 </ul>
 </li>
-<li>do..while</li>
+<li>
+<p>if-then[-else]：</p>
+<ul>
+<li><strong>ifg,L</strong>:其中L为标号，含义：如果机器状态字为大于，则跳转至标号L</li>
+<li><strong>ifge,L</strong>:其中L为标号，含义：如果机器状态字为大于等于，则跳转至标号L</li>
+<li><strong>ifl,L</strong>:其中L为标号，含义：如果机器状态字为小于，则跳转至标号L</li>
+<li><strong>ifle,L</strong>:其中L为标号，含义：如果机器状态字为小于等于，则跳转至标号L</li>
+<li><strong>ife,L</strong>:其中L为标号，含义：如果机器状态字为等于，则跳转至标号L</li>
+<li><strong>ifne,L</strong>:其中L为标号，含义：如果机器状态字为不等于，则跳转至标号L</li>
+</ul>
+</li>
+<li>
+<p>do..while</p>
+</li>
 <li>for</li>
 </ul>
 <h5>与运行时相关语句</h5>
@@ -388,6 +391,14 @@ if-then[-else]：
 <ul>
 <li>四元式：<strong>call,retVal,name,args</strong>,其中retVal为存放返回值的变量地址(过程调用则为NULL),name为过程(函数)名，args为参数个数</li>
 <li>含义：retVal = name(arg1,arg2...)</li>
+</ul>
+</li>
+<li>
+参数相关
+<ul>
+<li>四元式：<strong>param,res,op1,op2</strong>，其中res为参数名，op1，op2均为空</li>
+<li>含义： 表明res是过程或者函数的参数</li>
+<li>注：参数的进栈顺序是从右至左</li>
 </ul>
 </li>
 <li>

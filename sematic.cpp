@@ -500,6 +500,7 @@ int tableCheck(Table &symTable, AST root, int level)
 		procedureTemplet *addr = (procedureTemplet *)malloc(sizeof(procedureTemplet));
 		addr->types = NULL;
 		addr->args = 0;
+		addr->totalSpace = 100;
 		//当前节点是过程首部
 		//<过程首部>::=procedure<标识符>[<形式参数表>];
 		for (; i != root->children->end(); i++)
@@ -522,6 +523,7 @@ int tableCheck(Table &symTable, AST root, int level)
 		std::string name;
 		addr->args = 0;
 		addr->types = NULL;
+		addr->totalSpace = 100;
 		//当前节点是函数首部
 		//<函数首部>::=function<标识符>[<形式参数表>]:<基本类型>;
 		for (; i != root->children->end(); i++)

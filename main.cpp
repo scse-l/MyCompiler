@@ -27,11 +27,53 @@ unsigned int level;						//记录当前层数
 */
 void init();								//初始化过程
 
+/*
+	合并文件
+*/
+void mergeFile(char *file1, char *file2, char *file3)
+{
+	freopen(file1, "w", stdout);
+	char c = 0;
+
+	//头文件部分
+	printf(".386\n");
+	printf(".model flat, stdcall\n");
+	printf("option casemap : none\n");
+	printf("\ninclude \\masm32\\include\\masm32.inc\n");
+	printf("include \\masm32\\include\\kernel32.inc\n");
+	printf("include \\masm32\\macros\\macros.asm\n");
+	printf("include \\masm32\\include\\msvcrt.inc\n");
+	printf("\nincludelib \\masm32\\lib\\msvcrt.lib\n");
+	printf("includelib \\masm32\\lib\\masm32.lib\n");
+	printf("includelib \\masm32\\lib\\kernel32.lib\n");
+
+	//数据段
+	printf("\n.data\n");
+	printf("_char db '%%c',0\n");
+	printf("_int db '%%d',0\n");
+	freopen(file2, "r", stdin);
+	while ((c = getchar()) != EOF)
+	{
+		putchar(c);
+	}
+	//代码段
+	printf("\n.code\n");
+	freopen(file3, "r", stdin);
+	while ((c = getchar()) != EOF)
+	{
+		putchar(c);
+	}
+	printf("end start\n");
+	fclose(stdin);
+	fclose(stdout);
+
+	return;
+}
 
 int main()
 {
 	AST root = makeNode(ROOT,NULL);
-
+	*(root->val.ident) = "main";
 	freopen("in_IR.txt", "r", stdin);
 	freopen("out.txt", "w", stdout);
 
@@ -71,6 +113,11 @@ int main()
 	freopen("IR.txt", "r", stdin);
 	freopen("asm.txt", "w", stdout);
 	asmMaker(root,NULL);
+
+	fclose(stdin);
+	fclose(stdout);
+	//合并文件
+	mergeFile("Final.txt", "data.txt", "asm.txt");
 
 	return 0;
 }

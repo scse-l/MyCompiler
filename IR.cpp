@@ -101,6 +101,10 @@ std::string* IREmit(AST_node root)
 		i != root->children->end(); i++
 			)
 		{
+			if ((*i)->ast_type == STATS)
+			{
+				emit("program", root->parent->val.ident, NULL, NULL);
+			}
 			res = IREmit(*i);
 		}
 		emit("return", NULL, NULL, NULL);
@@ -257,29 +261,29 @@ std::string* ifStatEmit(AST_node t)
 		{
 			//当前节点是条件
 			res = conditionEmit(*i);
-			if (*res == "ife")
+			if (*res == "je")
 			{
-				*res = "ifne";
+				*res = "jne";
 			}
-			else if (*res == "ifne")
+			else if (*res == "jne")
 			{
-				*res = "ife";
+				*res = "je";
 			}
-			else if (*res == "ifl")
+			else if (*res == "jl")
 			{
-				*res = "ifge";
+				*res = "jge";
 			}
-			else if (*res == "ifge")
+			else if (*res == "jge")
 			{
-				*res = "ifl";
+				*res = "jl";
 			}
-			else if (*res == "ifg")
+			else if (*res == "jg")
 			{
-				*res = "ifle";
+				*res = "jle";
 			}
 			else
 			{
-				*res = "ifg";
+				*res = "jg";
 			}
 			emit(*res, lable, NULL, NULL);
 		}
@@ -347,12 +351,12 @@ std::string* forStatEmit(AST_node t)
 		}
 		else if ((*i)->lex_symbol == DOWNTO)
 		{
-			relop = "ifl";
+			relop = "jl";
 			stepOp = "dec";
 		}
 		else if ((*i)->lex_symbol == TO)
 		{
-			relop = "ifg";
+			relop = "jg";
 			stepOp = "inc";
 		}
 		else if((*i)->ast_type == EXPRESSION)
@@ -473,27 +477,27 @@ std::string* conditionEmit(AST_node t)
 	i++;
 	if ((*i)->lex_symbol == LESS)
 	{
-		op = new std::string("ifl");
+		op = new std::string("jl");
 	}
 	else if ((*i)->lex_symbol == LEQ)
 	{
-		op = new std::string("ifle");
+		op = new std::string("jle");
 	}
 	else if ((*i)->lex_symbol == NEQ)
 	{
-		op = new std::string("ifne");
+		op = new std::string("jne");
 	}
 	else if ((*i)->lex_symbol == GREATER)
 	{
-		op = new std::string("ifg");
+		op = new std::string("jg");
 	}
 	else if ((*i)->lex_symbol == GEQ)
 	{
-		op = new std::string("ifge");
+		op = new std::string("jge");
 	}
 	else
 	{
-		op = new std::string("ife");
+		op = new std::string("je");
 	}
 	i++;
 	op2 = expEmit(*i);

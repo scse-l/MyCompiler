@@ -88,6 +88,20 @@ void genAddr(std::string &target, int offset)
 }
 
 /*
+	生成字符串的标号
+*/
+std::string *genStringLable()
+{
+	static int StringLab = 0;
+	char _s[5], *s;
+	s = itoa(StringLab, _s, 10);
+	std::string *ret = new std::string(s);
+	*ret = "_string" + *ret;
+	StringLab++;
+	return ret;
+}
+
+/*
 	在寄存器中查找target，若target在寄存器中，则将target置为寄存器名字
 */
 bool findInRegs(std::string &target, std::string regs[])
@@ -109,6 +123,21 @@ bool findInRegs(std::string &target, std::string regs[])
 		}
 	}
 	return false;
+}
+
+/*
+	在常量池中查找target，若target在寄存器中，则将target置为寄存器名字
+*/
+bool findInConst(std::string &target, std::map<std::string,int> &constPool)
+{
+	if(constPool.find(target) == constPool.end())
+		return false;
+	else
+	{
+		char s[5];
+		target = *new std::string(itoa(constPool.find(target)->second,s,10));
+		return true;
+	}
 }
 
 void moveToRegs(std::string &target, std::string regs[], int &reguse)
@@ -141,7 +170,8 @@ void moveToRegs(std::string &target, std::string regs[], int &reguse)
 	return;
 }
 
-FILE *offsetTable = fopen("offsetTable.txt", "w+");
+FILE *offsetTable = fopen("offsetTable.txt", "w");
+FILE *data = fopen("data.txt", "w");
 int insNo = 0;
 
 /*
@@ -162,6 +192,8 @@ int asmMaker(AST_node cur, AST_node parent)
 	std::map<std::string, std::vector<int>> varPosRecord;		//用于记录变量当前所在的位置
 	std::string regs[4];						//用于记录当前寄存器中保存的临时变量名
 	int reguse = 0;
+	bool saved = false;							//用于记录函数过程调用时寄存器是否被保存
+	
 
 	while (fgets(Q_ins, 1000, stdin) != NULL)
 	{
@@ -174,7 +206,14 @@ int asmMaker(AST_node cur, AST_node parent)
 			if (op1 != "")
 			{
 				//常量声明
-				constPool.insert(std::pair<std::string, int>(res, atoi(op1.c_str())));
+				if (op1.c_str()[0] >= '0'&& op1.c_str()[0] <= '9')
+				{
+					constPool.insert(std::pair<std::string, int>(res, atoi(op1.c_str())));
+				}
+				else 
+				{
+					constPool.insert(std::pair<std::string, int>(res, op1.c_str()[0]));
+				}
 			}
 			else
 			{
@@ -199,10 +238,9 @@ int asmMaker(AST_node cur, AST_node parent)
 			offset +=  (4 * atoi(op2.c_str()));
 			varPosRecord.insert(std::pair<std::string, std::vector<int>>(res, *pos));
 		}
-		else if (op == "procedure")
+		else if (op == "procedure" || op == "function")
 		{
-			printf("-----------------procedure %s begins\n", res.c_str());
-			//记录参数偏移地址，将活动记录压栈
+			fprintf(offsetTable, "\n%s:\n", res.c_str());
 			for (int i = 0; i < prosAndFuns.size(); i++)
 			{
 				if (*(prosAndFuns[i]->children->at(0)->children->at(1)->val.ident) == res)
@@ -211,23 +249,12 @@ int asmMaker(AST_node cur, AST_node parent)
 					break;
 				}
 			}
-		}
-		else if (op == "function")
-		{
-			for (int i = 0; i < prosAndFuns.size(); i++)
-			{
-				if (*(prosAndFuns[i]->children->at(0)->children->at(1)->val.ident) == res)
-				{
-					asmMaker(prosAndFuns[i], prosAndFuns[i]->parent);
-					break;
-				}
-			}
-
 		}
 		else if (op == "+" || op == "-" || op == "*" || op == "/")
 		{
 			//算术运算
 			//res = op1 op op2;
+			//若op1不在寄存器中,则将其移至寄存器中
 			tableItem* item = tableFind(*table, op1, parent);
 			if ('0' <= op1.c_str()[0] && op1.c_str()[0] <= '9' || item != NULL)
 			{
@@ -238,40 +265,41 @@ int asmMaker(AST_node cur, AST_node parent)
 					//op1是立即数
 					pos = new std::string(op1);
 				}
-				else
+				else if (!findInConst(op1, constPool))
 				{
+					//op1是变量
 					pos = new std::string();
 					calcOffset(item, *pos);
+					if (reguse == EAX)
+					{
+						emitASM(new std::string("mov"), new std::string("eax"), new std::string(*pos));
+						regs[reguse] = op1;
+						op1 = "eax";
+					}else if (reguse == EBX)
+					{
+						emitASM(new std::string("mov"), new std::string("ebx"), new std::string(*pos));
+						regs[reguse] = op1;
+						op1 = "ebx";
+					}
+					else if (reguse == ECX)
+					{
+						emitASM(new std::string("mov"), new std::string("ecx"), new std::string(*pos));
+						regs[reguse] = op1;
+						op1 = "ecx";
+					}
+					else if (reguse == EDX)
+					{
+						emitASM(new std::string("mov"), new std::string("edx"), new std::string(*pos));
+						regs[reguse] = op1;
+						op1 = "edx";
+					}
+					else
+					{
+						printf("Can not find the temp value %s\n", op1.c_str());
+					}
+					reguse = (reguse + 1) % 4;
 				}
 
-				if (reguse == EAX)
-				{
-					emitASM(new std::string("mov"), new std::string("eax"), new std::string(*pos));
-					regs[reguse] = op1;
-					op1 = "eax";
-				}else if (reguse == EBX)
-				{
-					emitASM(new std::string("mov"), new std::string("ebx"), new std::string(*pos));
-					regs[reguse] = op1;
-					op1 = "ebx";
-				}
-				else if (reguse == ECX)
-				{
-					emitASM(new std::string("mov"), new std::string("ecx"), new std::string(*pos));
-					regs[reguse] = op1;
-					op1 = "ecx";
-				}
-				else if (reguse == EDX)
-				{
-					emitASM(new std::string("mov"), new std::string("edx"), new std::string(*pos));
-					regs[reguse] = op1;
-					op1 = "edx";
-				}
-				else
-				{
-					printf("Can not find the temp value %s\n", op1.c_str());
-				}
-				reguse = (reguse + 1) % 4;
 			}
 			else
 			{
@@ -312,8 +340,9 @@ int asmMaker(AST_node cur, AST_node parent)
 					break;
 				}
 			}
-			else
+			else if(!findInConst(op2,constPool))
 			{
+				//op2是变量
 				calcOffset(item, op2);
 			}
 			if(op == "+")
@@ -361,20 +390,6 @@ int asmMaker(AST_node cur, AST_node parent)
 		}
 		else if (op == ":=")
 		{
-			//取得op1的表示
-			if (!findInRegs(op1, regs))
-			{
-				//op1不在寄存器中
-				if (op1.c_str()[0] >= '0' && op1.c_str()[0] <= '9')
-				{
-					//op1是立即数
-				}
-				else
-				{
-					calcOffset(tableFind(*table, op1, parent), op1);
-					moveToRegs(op1, regs, reguse);
-				}
-			}
 			//根据op2来取得res的表示
 			if (op2 == "")
 			{
@@ -393,12 +408,12 @@ int asmMaker(AST_node cur, AST_node parent)
 					res = *new std::string(s);
 					res = "[ebp-" + res + "]";
 				}
-				else
+				else if(!findInConst(op2,constPool))
 				{
-					//op2是变量或常量
+					//op2是变量
 					calcOffset(tableFind(*table, op2, parent),op2);
 					moveToRegs(op2, regs, reguse);
-					emitASM(new std::string("mul"), &op2, new std::string("4"));
+					emitASM(new std::string("shl"), &op2, new std::string("2"));
 					char _s[5], *s;
 					s = itoa(tableFind(*table, res, parent)->offset, _s, 10);
 					emitASM(new std::string("add"), &op2, new std::string(s));
@@ -406,15 +421,32 @@ int asmMaker(AST_node cur, AST_node parent)
 					res = "[ebp+" + op2 + "]";
 				}
 			}
+			//取得op1的表示
+			if (!findInRegs(op1, regs))
+			{
+				//op1不在寄存器中
+				if (op1.c_str()[0] >= '0' && op1.c_str()[0] <= '9' || findInConst(op1,constPool))
+				{
+					//op1是立即数
+					res = "DWORD PTR " + res;
+				}
+				else
+				{
+					//op1是变量
+					calcOffset(tableFind(*table, op1, parent), op1);
+					moveToRegs(op1, regs, reguse);
+				}
+			}
+
 			emitASM(new std::string("mov"), &res, &op1);
 		}
 		else if (op == "array")
 		{
 			//访问数组元素
 			//res := op1[op2]
-			if (op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9')
+			if (op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9' || findInConst(op2, constPool))
 			{
-				//op2是个立即数
+				//op2是个立即数或者常量
 				char _s[5], *s;
 				int _offset = tableFind(*table, op1, parent)->offset + atoi(op2.c_str()) * 4;	//获得数组元素的偏移
 				s = itoa(_offset, _s, 10);
@@ -423,10 +455,10 @@ int asmMaker(AST_node cur, AST_node parent)
 			}
 			else
 			{
-				//op2是变量或常量
+				//op2是变量
 				calcOffset(tableFind(*table, op2, parent), op2);
 				moveToRegs(op2, regs, reguse);
-				emitASM(new std::string("mul"), &op2, new std::string("4"));
+				emitASM(new std::string("shl"), &op2, new std::string("2"));
 				char _s[5], *s;
 				s = itoa(tableFind(*table, op1, parent)->offset, _s, 10);
 				emitASM(new std::string("add"), &op2, new std::string(s));
@@ -457,7 +489,15 @@ int asmMaker(AST_node cur, AST_node parent)
 		}
 		else if (op == "param")
 		{
-			if (res.c_str()[0] >= '0' && res.c_str()[0] <= '9')
+			if (!saved)
+			{
+				emitASM(new std::string("push"), new std::string("eax"), NULL);
+				emitASM(new std::string("push"), new std::string("ebx"), NULL);
+				emitASM(new std::string("push"), new std::string("ecx"), NULL);
+				emitASM(new std::string("push"), new std::string("edx"), NULL);
+				saved = true;
+			}
+			if (res.c_str()[0] >= '0' && res.c_str()[0] <= '9' || findInConst(res,constPool))
 			{
 				//res是个立即数
 
@@ -476,16 +516,133 @@ int asmMaker(AST_node cur, AST_node parent)
 		}
 		else if (op == "call")
 		{
-			printf("----------call %s------------\n", res.c_str());
+			//call,retVal,name,args,
+			//retVal = name(arg1, arg2...)
+			//其中retVal为存放返回值的变量地址(过程调用则为NULL)
+			//name为过程(函数)名，args为参数个数
+			op1 = "__" + op1;
+			emitASM(new std::string("call"), &op1, NULL);
+			if (res != "")
+			{
+				//函数调用
+				tableItem *item = tableFind(*table, res, parent);
+				if (item == NULL)
+				{
+					//res是个临时变量
+					regs[EAX] = res;
+				}
+				else
+				{
+					//res不是临时变量
+					calcOffset(item, res);
+					emitASM(new std::string("mov"), &res, new std::string("eax"));
+				}
+			}
+			int _offset = 4 * atoi(op2.c_str());
+			char _s[5], *s;
+			s = itoa(_offset, _s, 10);
+			emitASM(new std::string("add"), new std::string("esp"), new std::string(s));
+			emitASM(new std::string("pop"), new std::string("edx"), NULL);
+			emitASM(new std::string("pop"), new std::string("ecx"), NULL);
+			emitASM(new std::string("pop"), new std::string("ebx"), NULL);
+			emitASM(new std::string("pop"), new std::string("eax"), NULL);
+		}
+		else if (op == "goto")
+		{
+			emitASM(new std::string("jmp"), &res, NULL);
+		}
+		else if (op == "program")
+		{
+			if (res == "main")
+			{
+				printf("start:\n");
+			}
+			//记录参数偏移地址，将活动记录压栈
+			printf("__%s:\n", res.c_str());
+			emitASM(new std::string("push"), new std::string("ebp"), NULL);
+			emitASM(new std::string("mov"), new std::string("ebp"), new std::string("esp"));
+			emitASM(new std::string("sub"), new std::string("esp"), new std::string("100"));
+		}
+		else if (op == "read")
+		{
+			//read,addr
+			//含义：将读入数据存到addr中
+			tableItem *item = tableFind(*table, res, parent);
+			calcOffset(item, res);
+			switch (reguse)
+			{
+			case EAX:emitASM(new std::string("lea"), new std::string("eax"), &res); res = "eax"; break;
+			case EBX:emitASM(new std::string("lea"), new std::string("ebx"), &res); res = "ebx"; break;
+			case ECX:emitASM(new std::string("lea"), new std::string("ecx"), &res); res = "ecx"; break;
+			case EDX:emitASM(new std::string("lea"), new std::string("edx"), &res); res = "edx"; break;
+			default:
+				break;
+			}
+			emitASM(new std::string("push"), &res, NULL);
+			switch (item->attribute)
+			{
+			case INT:emitASM(new std::string("push"), new std::string("offset _int"), NULL); break;
+			case CHAR:emitASM(new std::string("push"), new std::string("offset _char"), NULL); break;
+			default:
+				break; 
+			}
+			emitASM(new std::string("call"), new std::string("crt_scanf"), NULL);
+		}
+		else if (op == "write")
+		{
+			//write,option,addr
+			if (res == "0")
+			{
+				//option为0时表示输出字符串，addr为要输出的字符串
+				std::string *lab = genStringLable();
+				fprintf(data, "%s  db  \"%s\",0", lab->c_str(), op1.c_str());
+				emitASM(new std::string("push"), new std::string("offset " + *lab), NULL);
+			}
+			else if (res == "1")
+			{
+				//option为1时表示输出字符，addr为要输出的字符所在的地址
+				if (op1.c_str()[0] >= '0' && op1.c_str()[0] <= '9' || !findInConst(op1, constPool))
+				{
+					//op1是变量
+					if (!findInRegs(op1, regs))
+					{
+						//op1不在寄存器中
+						calcOffset(tableFind(*table, op1, parent), op1);
+						moveToRegs(op1, regs, reguse);
+						reguse = (reguse + 3) % 4;
+					}
+				}
+				emitASM(new std::string("push"), &op1, NULL);
+				emitASM(new std::string("push"), new std::string("offset _char"), NULL);
+			}
+			else
+			{
+				//option为2时表示输出整型数，addr为要输出的值所在的地址
+				if (op1.c_str()[0] >= '0' && op1.c_str()[0] <= '9' || !findInConst(op1, constPool))
+				{
+					//op1是变量
+					if (!findInRegs(op1, regs))
+					{
+						//op1不在寄存器中
+						calcOffset(tableFind(*table, op1, parent), op1);
+						moveToRegs(op1, regs, reguse);
+						reguse = (reguse + 3) % 4;
+					}
+				}
+				emitASM(new std::string("push"), &op1, NULL);
+				emitASM(new std::string("push"), new std::string("offset _int"), NULL);
+			}
+			emitASM(new std::string("call"), new std::string("crt_printf"), NULL);
 		}
 		else if (op == "return")
 		{
-		//	printf("----------------------ends\n");
+			emitASM(new std::string("mov"), new std::string("esp"), new std::string("ebp"));
+			emitASM(new std::string("pop"), new std::string("ebp"), NULL);
+			emitASM(new std::string("ret"), NULL, NULL);
+			printf("\n");
 			return 0;
 		}
-		else if (op == "")
-		{
-		}else
+		else if (op != "")
 		{
 			emitASM(&op, &res, NULL);
 		}
@@ -495,6 +652,9 @@ int asmMaker(AST_node cur, AST_node parent)
 		op2.clear();
 	}
 		
+	fclose(data);
+	fclose(offsetTable);
+
 	return 0;
 }
 
@@ -507,7 +667,7 @@ void emitASM(std::string *ins, std::string *op1, std::string *op2)
 	}
 	if (op2 != NULL)
 	{
-		printf(",%s", op2->c_str());
+		printf(",\t%s", op2->c_str());
 	}
 	printf("\n");
 	return ;

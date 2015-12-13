@@ -208,6 +208,7 @@ AST_node prohead(AST_node parent)
 	AST_node t = makeNode(PROHEAD, parent);
 
 	match(PRO,t);
+	*(parent->val.ident) = ident;
 	if (!match(IDENT,t))
 	{
 		error("Procedure declaration error");
@@ -335,6 +336,7 @@ AST_node funhead(AST_node parent)
 {
 	AST_node t = makeNode(FUNHEAD, parent);
 	match(FUN,t);
+	*(parent->val.ident) = ident;
 	if (!match(IDENT,t))
 	{
 		error("Function Declaration Error");
