@@ -48,6 +48,10 @@ std::string* IREmit(AST_node root)
 	else if (root->ast_type == CONSTDECL)
 	{
 		//常量声明
+		if (root->children->size() == 0)
+		{
+			return NULL;
+		}
 		for (std::vector<AST_node>::iterator i = root->children->begin();
 		i != root->children->end(); i++)
 		{
@@ -59,6 +63,10 @@ std::string* IREmit(AST_node root)
 	else if (root->ast_type == VARDECL)
 	{
 		//变量声明
+		if (root->children->size() == 0)
+		{
+			return NULL;
+		}
 		for (std::vector<AST_node>::iterator i = root->children->begin() + 1;
 		i != root->children->end(); i++)
 		{
@@ -216,7 +224,7 @@ std::string* funDefEmit(AST_node t)
 	op2 = item->attribute == INT ? new std::string("int") : new std::string("char");
 	emit("function", name, new std::string(s), op2);
 	i++;
-	IREmit(*i);
+	IREmit((*i));
 	return NULL;
 }
 

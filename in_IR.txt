@@ -1,9 +1,10 @@
-const pi = 3, e = 2,target = 'g',c = '5';
+const pi = 3, e = 2,target = '3',c = '5';
 
 var left,right,mid,n:integer;name:array[30] of char;arr:array[26] of char;
 	a,b:array[50] of integer;ans,i:integer;
 
 function search(left,right:integer;target:char):integer;
+const c = '5';
 var i:integer;
 	procedure s(left,right:integer;target:char);
 	begin

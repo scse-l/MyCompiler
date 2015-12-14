@@ -1,0 +1,130 @@
+.386
+.model flat, stdcall
+option casemap : none
+
+include \masm32\include\masm32.inc
+include \masm32\include\kernel32.inc
+include \masm32\macros\macros.asm
+include \masm32\include\msvcrt.inc
+
+includelib \masm32\lib\msvcrt.lib
+includelib \masm32\lib\masm32.lib
+includelib \masm32\lib\kernel32.lib
+
+.data
+_char db '%c',10,0
+_int db '%d',10,0
+_string0  db  "s:",10,0
+_string1  db  "left:",10,0
+_string2  db  "right:",10,0
+_string3  db  "target:",10,0
+_string4  db  "search:",10,0
+_string5  db  "left:",10,0
+_string6  db  "right:",10,0
+_string7  db  "target:",10,0
+_string8  db  "main:",10,0
+_string9  db  "left:",10,0
+
+
+.code
+__s:
+push	ebp
+mov	ebp,	esp
+sub	esp,	104
+push	offset _string0
+call	crt_printf
+push	offset _string1
+call	crt_printf
+mov	eax,	[ebp--8]
+push	eax
+push	offset _int
+call	crt_printf
+push	offset _string2
+call	crt_printf
+mov	eax,	[ebp--12]
+push	eax
+push	offset _int
+call	crt_printf
+push	offset _string3
+call	crt_printf
+mov	eax,	[ebp--16]
+push	eax
+push	offset _char
+call	crt_printf
+mov	esp,	ebp
+pop	ebp
+ret
+
+__search:
+push	ebp
+mov	ebp,	esp
+sub	esp,	108
+push	eax
+push	ebx
+push	ecx
+push	edx
+push	53
+push	2
+push	1
+call	__s
+add	esp,	12
+pop	edx
+pop	ecx
+pop	ebx
+pop	eax
+push	offset _string4
+call	crt_printf
+push	offset _string5
+call	crt_printf
+mov	eax,	[ebp--8]
+push	eax
+push	offset _int
+call	crt_printf
+push	offset _string6
+call	crt_printf
+mov	eax,	[ebp--12]
+push	eax
+push	offset _int
+call	crt_printf
+push	offset _string7
+call	crt_printf
+mov	eax,	[ebp--16]
+push	eax
+push	offset _char
+call	crt_printf
+mov	esp,	ebp
+pop	ebp
+ret
+
+start:
+__main:
+push	ebp
+mov	ebp,	esp
+sub	esp,	752
+mov	DWORD PTR [ebp-4],	0
+push	offset _string8
+call	crt_printf
+push	offset _string9
+call	crt_printf
+mov	eax,	[ebp-4]
+push	eax
+push	offset _int
+call	crt_printf
+push	eax
+push	ebx
+push	ecx
+push	edx
+push	51
+push	2
+push	4
+call	__search
+add	esp,	12
+pop	edx
+pop	ecx
+pop	ebx
+pop	eax
+mov	esp,	ebp
+pop	ebp
+ret
+
+end start

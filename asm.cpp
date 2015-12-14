@@ -181,8 +181,12 @@ int asmMaker(AST_node cur, AST_node parent)
 {
 	std::vector<AST_node> prosAndFuns;					//用于存放函数和过程的节点以便使用符号表
 	Table *table = cur->symTable;
-	//当前节点是根节点
-	storeNode(cur, prosAndFuns);
+	std::vector<AST_node>::iterator i = cur->children->begin();
+	for (; i != cur->children->end() && (*i)->ast_type != PROGRAM; i++)
+	{
+
+	}
+	storeNode(*i, prosAndFuns);
 
 	char Q_ins[100];
 	int offset = 4;
@@ -205,8 +209,9 @@ int asmMaker(AST_node cur, AST_node parent)
 			if (op1 != "")
 			{
 				//常量声明
-				if (op1.c_str()[0] >= '0'&& op1.c_str()[0] <= '9')
+				if (op == "int")
 				{
+					//整型声明
 					constPool.insert(std::pair<std::string, int>(res, atoi(op1.c_str())));
 				}
 				else 
@@ -244,7 +249,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			{
 				if (*(prosAndFuns[i]->children->at(0)->children->at(1)->val.ident) == res)
 				{
-					asmMaker(prosAndFuns[i], prosAndFuns[i]->parent);
+					asmMaker(prosAndFuns[i], cur);
 					break;
 				}
 			}
@@ -504,7 +509,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			else
 			{
 				//res是个标识符
-				if (!findInRegs(res, regs))
+				if (!findInRegs(res, regs) && !findInConst(res,constPool))
 				{
 					//res不在寄存器中
 					tableItem *item = tableFind(*table, res, parent);
