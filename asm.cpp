@@ -193,7 +193,6 @@ int asmMaker(AST_node cur, AST_node parent)
 	std::string regs[4];						//用于记录当前寄存器中保存的临时变量名
 	int reguse = 0;
 	bool saved = false;							//用于记录函数过程调用时寄存器是否被保存
-	
 
 	while (fgets(Q_ins, 1000, stdin) != NULL)
 	{
@@ -558,10 +557,11 @@ int asmMaker(AST_node cur, AST_node parent)
 				printf("start:\n");
 			}
 			//记录参数偏移地址，将活动记录压栈
+			char _s[5];
 			printf("__%s:\n", res.c_str());
 			emitASM(new std::string("push"), new std::string("ebp"), NULL);
 			emitASM(new std::string("mov"), new std::string("ebp"), new std::string("esp"));
-			emitASM(new std::string("sub"), new std::string("esp"), new std::string("100"));
+			emitASM(new std::string("sub"), new std::string("esp"), new std::string(itoa(offset+100, _s, 10)));
 		}
 		else if (op == "read")
 		{
@@ -595,7 +595,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			{
 				//option为0时表示输出字符串，addr为要输出的字符串
 				std::string *lab = genStringLable();
-				fprintf(data, "%s  db  \"%s\",0", lab->c_str(), op1.c_str());
+				fprintf(data, "%s  db  \"%s\",10,0\n", lab->c_str(), op1.c_str());
 				emitASM(new std::string("push"), new std::string("offset " + *lab), NULL);
 			}
 			else if (res == "1")

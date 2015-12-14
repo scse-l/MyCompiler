@@ -49,8 +49,8 @@ void mergeFile(char *file1, char *file2, char *file3)
 
 	//数据段
 	printf("\n.data\n");
-	printf("_char db '%%c',0\n");
-	printf("_int db '%%d',0\n");
+	printf("_char db '%%c',10,0\n");
+	printf("_int db '%%d',10,0\n");
 	freopen(file2, "r", stdin);
 	while ((c = getchar()) != EOF)
 	{
