@@ -108,11 +108,18 @@ int main()
 	//生成四元式
 	freopen("IR.txt", "w", stdout);
 	IREmit(root->children->at(0));
-	
+	fclose(stdout);
+	freopen("CON", "w", stdout);
+	printf("IR generated!\n\n");
+
 	//生成汇编
 	freopen("IR.txt", "r", stdin);
 	freopen("asm.txt", "w", stdout);
-	asmMaker(root,NULL);
+	asmMaker(root,NULL,1);
+	fclose(stdin);
+	fclose(stdout);
+	freopen("CON", "w", stdout);
+	printf("Asm generated!\n\n");
 
 	fclose(stdin);
 	fclose(stdout);

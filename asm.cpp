@@ -75,16 +75,48 @@ void calcOffset(tableItem *item, std::string &pos)
 	pos = "[ebp-" + pos + "]";
 	return;
 }
+
 /*
-	把offset转为地址放在target中
+	实现了静态链时的地址计算函数
+	cnt:表示需要回溯静态链的次数
 */
-void genAddr(std::string &target, int offset)
+void calcOffset(tableItem *item, std::string &pos, int cnt, int reguse)
 {
-	char _s[5], *s;
-	s = itoa(offset, _s, 10);
-	target = *(new std::string(s));
-	target = "[ebp-" + target + "]";
-	return;
+	if (cnt == 0)
+	{
+		//访问的是局部变量
+		char _s[5], *s;
+		s = itoa(item->offset, _s, 10);
+		pos = *(new std::string(s));
+		pos = "[ebp-" + pos + "]";
+		return;
+	}
+	else
+	{
+		//访问的是非局部变量，需要通过静态链回溯
+		std::string reg;
+		switch (reguse)
+		{
+		case EAX:reg = "eax"; break;
+		case EBX:reg = "ebx"; break;
+		case ECX:reg = "ecx"; break;
+		case EDX:reg = "edx"; break;
+		default:
+			break;
+		}
+		emitASM(new std::string("mov"), &reg, new std::string("[ebp]"));
+		cnt--;
+		while (cnt > 0)
+		{
+			emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "]"));
+			cnt--;
+		}
+		char _s[5], *s;
+		s = itoa(item->offset, _s, 10);
+		pos = *(new std::string(s));
+		pos = "["+ reg + "-" + pos + "]";
+		return;
+	}
 }
 
 /*
@@ -177,19 +209,20 @@ int insNo = 0;
 /*
 	根据语法树中的符号表信息和四元式生成相应的汇编代码
 */
-int asmMaker(AST_node cur, AST_node parent)
+int asmMaker(AST_node cur, AST_node parent, int level)
 {
 	std::vector<AST_node> prosAndFuns;					//用于存放函数和过程的节点以便使用符号表
 	Table *table = cur->symTable;
 	std::vector<AST_node>::iterator i = cur->children->begin();
 	for (; i != cur->children->end() && (*i)->ast_type != PROGRAM; i++)
 	{
-
+		//跳过不是program的节点
 	}
-	storeNode(*i, prosAndFuns);
+	if(i != cur->children->end())
+		storeNode(*i, prosAndFuns);
 
 	char Q_ins[100];
-	int offset = 4;
+	int offset = 8;
 	std::string *ins = NULL;
 	std::string op, res, op1, op2;
 	std::map<std::string, int> constPool;		//用于存放常量
@@ -249,7 +282,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			{
 				if (*(prosAndFuns[i]->children->at(0)->children->at(1)->val.ident) == res)
 				{
-					asmMaker(prosAndFuns[i], cur);
+					asmMaker(prosAndFuns[i], cur, level+1);
 					break;
 				}
 			}
@@ -273,7 +306,7 @@ int asmMaker(AST_node cur, AST_node parent)
 				{
 					//op1是变量
 					pos = new std::string();
-					calcOffset(item, *pos);
+					calcOffset(item, *pos, level - item->level, reguse);
 					if (reguse == EAX)
 					{
 						emitASM(new std::string("mov"), new std::string("eax"), new std::string(*pos));
@@ -347,7 +380,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			else if(!findInConst(op2,constPool))
 			{
 				//op2是变量
-				calcOffset(item, op2);
+				calcOffset(item, op2, level - item->level, reguse);
 			}
 			if(op == "+")
 			{
@@ -388,7 +421,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			else
 			{
 				//res不是临时变量
-				calcOffset(item, res);
+				calcOffset(item, res, level - item->level, reguse);
 				emitASM(new std::string("mov"), new std::string(res), new std::string(op1));
 			}
 		}
@@ -398,7 +431,8 @@ int asmMaker(AST_node cur, AST_node parent)
 			if (op2 == "")
 			{
 				//res := op1
-				calcOffset(tableFind(*table, res, parent), res);
+				tableItem *item = tableFind(*table, res, parent);
+				calcOffset(item, res, level - item->level, reguse);
 			}
 			else
 			{
@@ -415,7 +449,8 @@ int asmMaker(AST_node cur, AST_node parent)
 				else if(!findInConst(op2,constPool))
 				{
 					//op2是变量
-					calcOffset(tableFind(*table, op2, parent),op2);
+					tableItem *item = tableFind(*table, op2, parent);
+					calcOffset(item, op2, level - item->level, reguse);
 					moveToRegs(op2, regs, reguse);
 					emitASM(new std::string("shl"), &op2, new std::string("2"));
 					char _s[5], *s;
@@ -437,7 +472,8 @@ int asmMaker(AST_node cur, AST_node parent)
 				else
 				{
 					//op1是变量
-					calcOffset(tableFind(*table, op1, parent), op1);
+					tableItem *item = tableFind(*table, op1, parent);
+					calcOffset(item, op1, level - item->level, reguse);
 					moveToRegs(op1, regs, reguse);
 				}
 			}
@@ -460,7 +496,8 @@ int asmMaker(AST_node cur, AST_node parent)
 			else
 			{
 				//op2是变量
-				calcOffset(tableFind(*table, op2, parent), op2);
+				tableItem *item = tableFind(*table, op2, parent);
+				calcOffset(item, op2, level - item->level, reguse);
 				moveToRegs(op2, regs, reguse);
 				emitASM(new std::string("shl"), &op2, new std::string("2"));
 				char _s[5], *s;
@@ -478,7 +515,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			}
 			else
 			{
-				calcOffset(item, res);
+				calcOffset(item, res, level - item->level, reguse);
 				emitASM(new std::string("mov"), &res, &op1);
 			}
 		}
@@ -513,7 +550,7 @@ int asmMaker(AST_node cur, AST_node parent)
 				{
 					//res不在寄存器中
 					tableItem *item = tableFind(*table, res, parent);
-					calcOffset(item, res);
+					calcOffset(item, res, level - item->level, reguse);
 				}
 			}
 			emitASM(new std::string("push"), &res, NULL);
@@ -538,7 +575,7 @@ int asmMaker(AST_node cur, AST_node parent)
 				else
 				{
 					//res不是临时变量
-					calcOffset(item, res);
+					calcOffset(item, res, level - item->level, reguse);
 					emitASM(new std::string("mov"), &res, new std::string("eax"));
 				}
 			}
@@ -573,7 +610,7 @@ int asmMaker(AST_node cur, AST_node parent)
 			//read,addr
 			//含义：将读入数据存到addr中
 			tableItem *item = tableFind(*table, res, parent);
-			calcOffset(item, res);
+			calcOffset(item, res, level - item->level, reguse);
 			switch (reguse)
 			{
 			case EAX:emitASM(new std::string("lea"), new std::string("eax"), &res); res = "eax"; break;
@@ -612,7 +649,8 @@ int asmMaker(AST_node cur, AST_node parent)
 					if (!findInRegs(op1, regs))
 					{
 						//op1不在寄存器中
-						calcOffset(tableFind(*table, op1, parent), op1);
+						tableItem *item = tableFind(*table, op1, parent);
+						calcOffset(item, op1, level - item->level, reguse);
 						moveToRegs(op1, regs, reguse);
 						reguse = (reguse + 3) % 4;
 					}
@@ -629,7 +667,8 @@ int asmMaker(AST_node cur, AST_node parent)
 					if (!findInRegs(op1, regs))
 					{
 						//op1不在寄存器中
-						calcOffset(tableFind(*table, op1, parent), op1);
+						tableItem *item = tableFind(*table, op1, parent);
+						calcOffset(item, op1, level - item->level, reguse);
 						moveToRegs(op1, regs, reguse);
 						reguse = (reguse + 3) % 4;
 					}
