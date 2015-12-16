@@ -71,7 +71,7 @@ void storeNode(AST_node t, std::vector<AST_node> &prosAndFuns)
 	实现了静态链时的地址计算函数
 	cnt:表示需要回溯静态链的次数
 */
-void calcOffset(tableItem *item, std::string &pos, int cnt, int reguse)
+void calcOffset(tableItem *item, std::string &pos, int cnt, int &reguse)
 {
 	if (cnt == 0)
 	{
@@ -88,18 +88,18 @@ void calcOffset(tableItem *item, std::string &pos, int cnt, int reguse)
 		std::string reg;
 		switch (reguse)
 		{
-		case EAX:reg = "eax"; break;
-		case EBX:reg = "ebx"; break;
-		case ECX:reg = "ecx"; break;
-		case EDX:reg = "edx"; break;
+		case EAX:reg = "eax"; reguse++; break;
+		case EBX:reg = "ebx"; reguse++; break;
+		case ECX:reg = "ecx"; reguse++; break;
+		case EDX:reg = "edx"; reguse = EAX; break;
 		default:
 			break;
 		}
-		emitASM(new std::string("mov"), &reg, new std::string("[ebp]"));
+		emitASM(new std::string("mov"), &reg, new std::string("[ebp+8]"));
 		cnt--;
 		while (cnt > 0)
 		{
-			emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "]"));
+			emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "+8]"));
 			cnt--;
 		}
 		char _s[5], *s;
@@ -413,23 +413,28 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				emitASM(new std::string("push"), new std::string("ebx"), NULL);
 				emitASM(new std::string("push"), new std::string("ecx"), NULL);
 				emitASM(new std::string("push"), new std::string("edx"), NULL);
-				emitASM(new std::string("mov"), new std::string("edx"), new std::string("0"));
-				emitASM(new std::string("mov"), new std::string("eax"), new std::string(op1));
-				if (op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9')
+				if (op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9' || op2 != "ebx" && op2 != "ecx")
 				{
-					//op2是立即数
-					if (reguse == EAX || reguse == EDX)
+					//将op2移至ecx
+					if (op1 == "ecx")
 					{
-						reguse = EBX;
+						emitASM(new std::string("mov"), new std::string("eax"), &op1);
 					}
-					moveToRegs(op2, regs, reguse);
+					emitASM(new std::string("mov"), new std::string("ecx"), &op2);
+					op2 = "ecx";
 				}
+				if (op1 != "eax")
+				{
+					emitASM(new std::string("mov"), new std::string("eax"), new std::string(op1));
+				}
+
 				if (op == "*")
 				{
 					emitASM(new std::string("imul"), new std::string(op2), NULL);
 				}
 				else
 				{
+					emitASM(new std::string("mov"), new std::string("edx"), new std::string("0"));
 					emitASM(new std::string("idiv"), new std::string(op2), NULL);
 				}
 			}
@@ -736,6 +741,68 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			//retVal = name(arg1, arg2...)
 			//其中retVal为存放返回值的变量地址(过程调用则为NULL)
 			//name为过程(函数)名，args为参数个数
+			if (!saved)
+			{
+				emitASM(new std::string("push"), new std::string("eax"), NULL);
+				emitASM(new std::string("push"), new std::string("ebx"), NULL);
+				emitASM(new std::string("push"), new std::string("ecx"), NULL);
+				emitASM(new std::string("push"), new std::string("edx"), NULL);
+				saved = true;
+			}
+
+			tableItem *item = tableFind(*table, op1, parent);
+			if (item != NULL)
+			{
+				if (item->level > level-1)
+				{
+					//上层调用下层
+					printf(";静态链\n");
+					emitASM(new std::string("push"), new std::string("ebp"), NULL);
+				}
+				else if (item->level == level-1)
+				{
+					//同层调用
+					printf(";静态链\n");
+					emitASM(new std::string("push"), new std::string("[ebp+8]"), NULL);
+				}
+				else
+				{
+					//下层调用上层
+					printf(";静态链\n");
+					int cnt = item->level - level;
+					std::string SL = "";
+					switch (reguse)
+					{
+					case EAX:
+						emitASM(new std::string("mov"), new std::string("eax"), new std::string("ebp"));
+						SL = "eax";
+						reguse++;
+						break;
+					case EBX:
+						emitASM(new std::string("mov"), new std::string("ebx"), new std::string("ebp"));
+						SL = "ebx";
+						reguse++;
+						break;
+					case ECX:
+						emitASM(new std::string("mov"), new std::string("ecx"), new std::string("ebp"));
+						SL = "ecx";
+						reguse++;
+						break;
+					case EDX:
+						emitASM(new std::string("mov"), new std::string("edx"), new std::string("ebp"));
+						SL = "edx";
+						reguse = EAX;
+						break;
+					default:
+						break;
+					}
+					while (cnt > 0)
+					{
+						emitASM(new std::string("mov"), &SL, new std::string("[" + SL + "+8]"));
+					}
+					emitASM(new std::string("push"), &SL, NULL);
+				}
+			}
 			op1 = "__" + op1;
 			emitASM(new std::string("call"), &op1, NULL);
 			if (res != "")

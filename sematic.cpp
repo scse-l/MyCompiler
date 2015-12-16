@@ -590,7 +590,7 @@ std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<int>* types = new std::vector<int>;
-	int offset = 8;
+	int offset = 12;
 
 	//<形式参数表>:: = '('<形式参数段>{; <形式参数段>}')'
 	for (; i != t->children->end(); i++)
