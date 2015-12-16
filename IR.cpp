@@ -359,13 +359,16 @@ std::string* forStatEmit(AST_node t)
 		}
 		else if ((*i)->lex_symbol == DOWNTO)
 		{
-			relop = "jl";
+			relop = "jle";
 			stepOp = "dec";
+			putLable(conditionLable);
 		}
 		else if ((*i)->lex_symbol == TO)
 		{
-			relop = "jg";
+			relop = "jge";
 			stepOp = "inc";
+			putLable(conditionLable);		//将label放在这儿是因为输入输出会修改EAX的值，
+											//即可能修改上界或者下界的值，从而导致循环次数不对
 		}
 		else if((*i)->ast_type == EXPRESSION)
 		{
@@ -374,7 +377,6 @@ std::string* forStatEmit(AST_node t)
 		else if ((*i)->lex_symbol == DO)
 		{
 			i++;
-			putLable(conditionLable);
 			emit("cmp", op1, op2, NULL);
 			emit(relop, endLable, NULL, NULL);
 			IREmit(*i);
@@ -538,6 +540,11 @@ std::string* expEmit(AST_node t)
 		i++;
 	}
 	op1 = termEmit(*i);
+	if (op == "-")
+	{
+		//表达式前面有负号
+		emit("neg", op1, op1, NULL);
+	}
 	for (i++; i != t->children->end();i++)
 	{
 		if ((*i)->lex_symbol == MINUS)

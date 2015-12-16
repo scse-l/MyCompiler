@@ -4,7 +4,7 @@
 #include "table.h"
 #include "support.h"
 #include "global.h"
-
+#pragma warning(disable:4996)
 /*
 	查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
 	t:待查找的符号表

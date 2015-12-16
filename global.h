@@ -28,8 +28,6 @@ enum AST_Type_e
 typedef struct AST_t* AST;
 typedef AST AST_node;
 
-
-
 struct AST_t {
 	ASTType ast_type;										//记录当前节点的语法类型
 	LexType lex_symbol;										//记录当前节点的词法类型
@@ -51,15 +49,12 @@ struct AST_t {
 
 //符号表操作
 /*
-查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
-t:待查找的符号表
-name:欲查找的符号
-parent:当前节点的父节点
+	查找操作：若在所给符号表中找到则返回指向该符号表项的指针，否则返回NULL
+	t:待查找的符号表
+	name:欲查找的符号
+	parent:当前节点的父节点
 */
 tableItem* tableFind(Table &t, std::string name, AST_node parent);
-
-
-
 
 /*
 语法树相关操作
