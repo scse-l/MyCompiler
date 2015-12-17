@@ -551,7 +551,7 @@ int tableCheck(Table &symTable, AST root, int level)
 		{
 			tableCheck(*(root->symTable), *i, level + 1);
 		}
-		printTable(symTable);
+		printTable(*(root->symTable));
 		std::cout<<std::endl<<std::endl;
 		return 0;
 	}
@@ -613,10 +613,15 @@ void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<std::string> names;
 	int cnt = 0;
+	bool ref = false;
 
 	//<形式参数段>::=[var]<标识符>{,<标识符>}:<基本类型>
 	for (; i != t->children->end(); i++)
 	{
+		if ((*i)->lex_symbol == VAR)
+		{
+			ref = true;
+		}
 		if ((*i)->lex_symbol == IDENT)
 		{
 			cnt++;
@@ -632,7 +637,17 @@ void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *
 	while (cnt > 0)
 	{
 		types->push_back((*i)->lex_symbol);
-		tableItem* item = tableInsert(symTable, names[n], VAR, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		tableItem* item;
+		if (ref)
+		{
+			//传地址
+			item = tableInsert(symTable, names[n], REFERENCE, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		}
+		else
+		{
+			//传值
+			item = tableInsert(symTable, names[n], VAR, (*i)->lex_symbol, level, NULL, (*i)->lineNo);
+		}
 		item->offset = -*startoffset;
 		*startoffset += space;
 		cnt--;

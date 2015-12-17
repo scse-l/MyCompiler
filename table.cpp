@@ -178,8 +178,8 @@ void printItem(tableItem &i)
 		}
 		std::cout << std::endl;
 		break;
-	case ARGS:
-		std::cout << "arg, ";
+	case REFERENCE:
+		std::cout << "reference, ";
 		if (i.attribute == INT)
 		{
 			std::cout << "int, ," << std::endl;
