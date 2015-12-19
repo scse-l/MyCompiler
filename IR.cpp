@@ -115,7 +115,7 @@ std::string* IREmit(AST_node root)
 			}
 			res = IREmit(*i);
 		}
-		emit("return", NULL, NULL, NULL);
+		emit("return", root->parent->val.ident, NULL, NULL);
 		printf("\n");
 	}
 	return res;

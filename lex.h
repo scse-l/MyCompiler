@@ -18,8 +18,8 @@ enum Lex_Type_e
 	//符号集
 	PLUS, MINUS, TIMES, SLASH, COMMA, SEMICOLON, LPARENT, RPARENT, EQL, NEQ,
 	PERIOD, LESS, LEQ, GREATER, GEQ, BECOMES, COLON, QUT, SGLQUT, LBRACKET, RBRACKET,
-	//临时变量
-	TEMP
+	//临时变量,reference表明当前参数为传地址
+	TEMP, REFERENCE
 };
 
 int lex();                  //词法分析函数

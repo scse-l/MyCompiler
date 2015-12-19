@@ -272,7 +272,13 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 		}
 		else if (op == "procedure" || op == "function")
 		{
-			fprintf(offsetTable, "\n%s:\n", res.c_str());
+			tableItem *item = tableFind(*table, res, parent);
+			if(op == "function")
+			{
+				item->offset = offset;
+				offset += 4;
+			}
+			fprintf(offsetTable, "\n%s:%d\n", res.c_str(),item->offset);
 			for (int i = 0; i < prosAndFuns.size(); i++)
 			{
 				if (*(prosAndFuns[i]->children->at(0)->children->at(1)->val.ident) == res)
@@ -660,11 +666,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 					default:
 						break;
 					}
-					emitASM(new std::string("mov"), &reg, new std::string("[ebp]"));
+					emitASM(new std::string("mov"), &reg, new std::string("[ebp+8]"));
 					cnt--;
 					while (cnt > 0)
 					{
-						emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "]"));
+						emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "+8]"));
 						cnt--;
 					}
 					op1 = "[" + reg + "+" + op2 + "]";
@@ -828,7 +834,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			emitASM(new std::string("pop"), new std::string("edx"), NULL);
 			emitASM(new std::string("pop"), new std::string("ecx"), NULL);
 			emitASM(new std::string("pop"), new std::string("ebx"), NULL);
-			emitASM(new std::string("pop"), new std::string("eax"), NULL);
+			if(res == "")
+			{
+				//过程调用才pop出eax，否则eax是返回值
+				emitASM(new std::string("pop"), new std::string("eax"), NULL);
+			}
 		}
 		else if (op == "goto")
 		{
@@ -947,6 +957,16 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 		}
 		else if (op == "return")
 		{
+			tableItem *item = tableFind(*table, res, parent);
+			if(item != NULL && item->type == FUN)
+			{
+				if(!findInRegs(res,regs))
+				{
+					calcOffset(item, res, level - item->level, reguse);
+				}
+				if(res != "eax")
+					emitASM(new std::string("mov"), new std::string("eax"), new std::string(res));
+			}
 			emitASM(new std::string("mov"), new std::string("esp"), new std::string("ebp"));
 			emitASM(new std::string("pop"), new std::string("ebp"), NULL);
 			emitASM(new std::string("ret"), NULL, NULL);

@@ -325,26 +325,33 @@ LexType factorCheck(AST_node factor)
 				//<函数调用语句>::=<标识符>['('<表达式>{,<表达式>}')']
 				functionTemplet *addr = (functionTemplet *)(*i)->tableItem->addr;
 				//比较形参与实参的类型和数量是否相等
-				int n = argsCheck(*(i+1), addr);
-				if (n < addr->args)
+				int n = 0;
+				if(i + 1 != factor->children->end())
 				{
-					char _s[5];
-					char *s = itoa(addr->args, _s, 10);
-					std::string msg = s;
-					msg = "Too Few Args:Should be " + msg + ", But ";
-					s = itoa(n, _s, 10);
-					msg = msg + s + " given";
-					error(factor->lineNo, msg);
+					n = argsCheck(*(i + 1), addr);
 				}
-				else if (n > addr->args)
+//				if(n != 0)
 				{
-					char _s[5];
-					char *s = itoa(addr->args, _s, 10);
-					std::string msg = s;
-					msg = "Too Many Args:Should be " + msg + ", But ";
-					s = itoa(n, _s, 10);
-					msg = msg + s + " given";
-					error(factor->lineNo, msg);
+					if (n < addr->args)
+					{
+						char _s[5];
+						char *s = itoa(addr->args, _s, 10);
+						std::string msg = s;
+						msg = "Too Few Args:Should be " + msg + ", But ";
+						s = itoa(n, _s, 10);
+						msg = msg + s + " given";
+						error(factor->lineNo, msg);
+					}
+					else if (n > addr->args)
+					{
+						char _s[5];
+						char *s = itoa(addr->args, _s, 10);
+						std::string msg = s;
+						msg = "Too Many Args:Should be " + msg + ", But ";
+						s = itoa(n, _s, 10);
+						msg = msg + s + " given";
+						error(factor->lineNo, msg);
+					}
 				}
 				l = (LexType)(*i)->tableItem->attribute;
 			}
@@ -523,7 +530,7 @@ int tableCheck(Table &symTable, AST root, int level)
 		std::string name;
 		addr->args = 0;
 		addr->types = NULL;
-		addr->totalSpace = 100;
+		addr->totalSpace = 1000;
 		//当前节点是函数首部
 		//<函数首部>::=function<标识符>[<形式参数表>]:<基本类型>;
 		for (; i != root->children->end(); i++)

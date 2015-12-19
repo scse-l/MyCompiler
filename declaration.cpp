@@ -256,6 +256,7 @@ AST_node arglist(AST_node parent)
 AST_node args(AST_node parent)
 {
 	AST_node t = makeNode(ARGS, parent);
+	
 	match(VAR,t);
 	if (!match(IDENT, t))
 	{

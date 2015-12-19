@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <string>
 #include <map>
 #include <vector>
 #include "lex.h"
@@ -76,6 +75,7 @@ typedef struct {
 	int args;						//记录参数的个数
 	std::vector<int>* types;		//记录参数的类型
 	int totalSpace;
+
 } functionTemplet;
 
 typedef struct {
