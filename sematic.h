@@ -4,8 +4,8 @@
 int sematic(AST root);								//语义分析程序
 int typeCheck(AST root);							//类型检查函数
 int tableCheck(Table &symTable,AST root, int level);							//符号表填查函数
-std::vector<int>* argsTypes(Table &symTable, AST_node t, int level);							//对参数类型进行分析
-void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *startoffset);						//对参数段进行分析
+std::vector<LexType>* argsTypes(Table &symTable, AST_node t, int level);							//对参数类型进行分析
+void args(Table &symTable, AST_node t, std::vector<LexType> *types, int level, int *startoffset);						//对参数段进行分析
 LexType termCheck(AST_node term);
 LexType factorCheck(AST_node factor);
 LexType expCheck(AST_node expression);

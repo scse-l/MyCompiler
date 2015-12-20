@@ -76,8 +76,10 @@ int proCallCheck(AST_node t)
 	{
 		if ((*i)->lex_symbol == IDENT)
 		{
-			if ((*i)->tableItem == NULL)
+			if((*i)->tableItem == NULL)
+		//	if (tableFind(*(t->symTable),*((*i)->val.ident),t->parent) == NULL)
 			{
+				//之前写的是什么意思呢?
 				return 1;
 			}
 			addr = ((procedureTemplet*)(*i)->tableItem->addr);
@@ -117,7 +119,7 @@ int proCallCheck(AST_node t)
 int argsCheck(AST_node t, const void *addr)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
-	std::vector<int>::iterator type = ((procedureTemplet*)addr)->types->begin();
+	std::vector<LexType>::iterator type = ((procedureTemplet*)addr)->types->begin();
 	int n = 0;
 
 	for (; i != t->children->end() && 
@@ -421,6 +423,7 @@ int tableCheck(Table &symTable, AST root, int level)
 				addr = (int *)malloc(sizeof(int));
 				*((int *)addr) = (*i)->val.value;
 				(*(i-2))->tableItem = tableInsert(symTable, name, CONST, INT, level, addr, (*i)->lineNo);
+				(*(i - 2))->tableItem->table = &symTable;
 			}
 			else if ((*i)->lex_symbol == CH)
 			{
@@ -428,6 +431,7 @@ int tableCheck(Table &symTable, AST root, int level)
 				char c = (*i)->val.ident->c_str()[0];
 				*((char *)addr) = c;
 				(*(i-2))->tableItem = tableInsert(symTable, name, CONST, CHAR, level, addr, (*i)->lineNo);
+				(*(i - 2))->tableItem->table = &symTable;
 			}
 		}
 		return 0;
@@ -474,6 +478,7 @@ int tableCheck(Table &symTable, AST root, int level)
 					for (unsigned int j = 0; j < names.size(); j++)
 					{
 						tableItem* item = tableInsert(symTable, names[j],VAR, ARRAY, level, addr, (*i)->lineNo);
+						item->table = &symTable;
 					}
 				}
 				else
@@ -487,6 +492,7 @@ int tableCheck(Table &symTable, AST root, int level)
 							addr = (int *)malloc(sizeof(int));
 							*((int *)addr) = 0;
 							tableItem* item = tableInsert(symTable, names[j], VAR, INT, level, addr, (*i)->lineNo);
+							item->table = &symTable;
 						}
 					}
 					else
@@ -495,6 +501,7 @@ int tableCheck(Table &symTable, AST root, int level)
 						{
 							addr = (char *)malloc(sizeof(char));
 							tableItem* item = tableInsert(symTable, names[j], VAR, CHAR, level, addr, (*i)->lineNo);
+							item->table = &symTable;
 						}
 					}
 				}
@@ -515,6 +522,7 @@ int tableCheck(Table &symTable, AST root, int level)
 			if ((*i)->lex_symbol == IDENT)
 			{
 				(*i)->tableItem = tableInsert(symTable, *((*i)->val.ident), PRO, (LexType)0, level, addr, (*i)->lineNo);
+				(*i)->tableItem->table = root->symTable;
 			}
 			else if ((*i)->ast_type == ARGLIST)
 			{
@@ -528,6 +536,7 @@ int tableCheck(Table &symTable, AST root, int level)
 	{
 		functionTemplet *addr = (functionTemplet *)malloc(sizeof(functionTemplet));
 		std::string name;
+		AST_node node = NULL;
 		addr->args = 0;
 		addr->types = NULL;
 		addr->totalSpace = 1000;
@@ -538,6 +547,7 @@ int tableCheck(Table &symTable, AST root, int level)
 			if ((*i)->lex_symbol == IDENT)
 			{
 				name = *((*i)->val.ident);
+				node = *i;
 			}
 			else if ((*i)->ast_type == ARGLIST)
 			{
@@ -546,7 +556,8 @@ int tableCheck(Table &symTable, AST root, int level)
 			}
 			else if ((*i)->lex_symbol == INT || (*i)->lex_symbol == CHAR)
 			{
-				tableInsert(symTable, name, FUN, (*i)->lex_symbol, level, addr, (*i)->lineNo);
+				node->tableItem = tableInsert(symTable, name, FUN, (*i)->lex_symbol, level, addr, (*i)->lineNo);
+				node->tableItem->table = root->symTable;
 			}
 		}
 		return 0;
@@ -571,7 +582,7 @@ int tableCheck(Table &symTable, AST root, int level)
 			//符号表中没有当前标识符
 			error(root->lineNo,"Undefined Identifier " + *(root->val.ident));
 			//防止重复报错
-			tableInsert(symTable, *(root->val.ident), (LexType)0, (LexType)0, level, NULL, root->lineNo);
+			tableInsert(symTable, *(root->val.ident), (LexType)0, (LexType)0, level, NULL, root->lineNo)->table = &symTable;
 			return 0;
 		}
 		root->tableItem = item;
@@ -593,10 +604,10 @@ int tableCheck(Table &symTable, AST root, int level)
 	对形式参数表进行分析
 	t:语法树类型为ARGLIST的节点
 */
-std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
+std::vector<LexType>* argsTypes(Table &symTable, AST_node t, int level)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
-	std::vector<int>* types = new std::vector<int>;
+	std::vector<LexType>* types = new std::vector<LexType>;
 	int offset = 12;
 
 	//<形式参数表>:: = '('<形式参数段>{; <形式参数段>}')'
@@ -615,7 +626,7 @@ std::vector<int>* argsTypes(Table &symTable, AST_node t, int level)
 	对形式参数段进行分析
 	t:语法树类型为ARGS的节点
 */
-void args(Table &symTable, AST_node t, std::vector<int> *types, int level, int *startoffset)
+void args(Table &symTable, AST_node t, std::vector <LexType> *types, int level, int *startoffset)
 {
 	std::vector<AST_node>::iterator i = t->children->begin();
 	std::vector<std::string> names;

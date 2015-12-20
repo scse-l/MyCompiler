@@ -68,6 +68,42 @@ void storeNode(AST_node t, std::vector<AST_node> &prosAndFuns)
 }
 
 /*
+	引用时的地址计算函数
+	cnt:表示需要回溯静态链的次数
+*/
+void calcOffset(tableItem *item, std::string &pos, int cnt)
+{
+	if (cnt == 0)
+	{
+		//访问的是局部变量
+		char _s[5], *s;
+		s = itoa(item->offset, _s, 10);
+		pos = *(new std::string(s));
+		emitASM(new std::string("mov"), new std::string("eax"), new std::string("ebp"));
+		emitASM(new std::string("sub"), new std::string("eax"), &pos);
+		pos = "eax";
+		return;
+	}
+	else
+	{
+		//访问的是非局部变量，需要通过静态链回溯
+		std::string reg = "eax";
+		emitASM(new std::string("mov"), &reg, new std::string("[ebp+8]"));
+		cnt--;
+		while (cnt > 0)
+		{
+			emitASM(new std::string("mov"), &reg, new std::string("[" + reg + "+8]"));
+			cnt--;
+		}
+		char _s[5], *s;
+		s = itoa(item->offset, _s, 10);
+		pos = *(new std::string(s));
+		emitASM(new std::string("sub"), &reg, &pos);
+		pos = reg;
+	}
+}
+
+/*
 	实现了静态链时的地址计算函数
 	cnt:表示需要回溯静态链的次数
 */
@@ -301,13 +337,12 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				if ('0' <= op1.c_str()[0] && op1.c_str()[0] <= '9')
 				{
 					//op1是立即数
-					pos = new std::string(op1);
 				}
 				else if (!findInConst(op1, constPool))
 				{
 					//op1是变量
 					pos = new std::string();
-					calcOffset(item, *pos, level - item->level, reguse);
+					calcOffset(item, *pos, level - item->level, reguse);						
 					if (reguse == EAX)
 					{
 						emitASM(new std::string("mov"), new std::string("eax"), new std::string(*pos));
@@ -336,6 +371,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 						printf("Can not find the temp value %s\n", op1.c_str());
 					}
 					reguse = (reguse + 1) % 4;
+					if(item->type == REFERENCE)
+					{
+						//op1是引用
+						emitASM(new std::string("mov"), &op1, new std::string("[" + op1 + "]"));
+					}
 				}
 
 			}
@@ -361,7 +401,12 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			item = tableFind(*table, op2, parent);
 			if (item == NULL)
 			{
-				//op2是临时变量
+				//op2是临时变量或立即数
+				if (op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9')
+				{
+					//op2是个立即数
+					
+				}
 				int j = 0;
 				for (; j < 4; j++)
 				{
@@ -381,14 +426,33 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			else if(!findInConst(op2,constPool))
 			{
 				//op2是变量
+				std::string name = op2;
 				calcOffset(item, op2, level - item->level, reguse);
-				op2 = "DWORD PTR " + op2;
+				if(item->type == REFERENCE)
+				{
+					//op2是引用
+					regs[reguse] = name;
+					moveToRegs(op2, regs, reguse);
+					emitASM(new std::string("mov"), &op2, new std::string("[" + op2 + "]"));
+				}else
+				{
+					op2 = "DWORD PTR " + op2;
+				}
 			}
 			if(op == "+")
 			{
 				if (op1.c_str()[0] >= '0' && op1.c_str()[0] <= '9')
 				{
-					emitASM(new std::string("add"), new std::string(op2), new std::string(op1));
+					//op1是个立即数
+					if(op2.c_str()[0] >= '0' && op2.c_str()[0] <= '9')
+					{
+						//op2也是个立即数
+						moveToRegs(op1, regs, reguse);
+						emitASM(new std::string("add"), new std::string(op1), new std::string(op2));
+					}else
+					{
+						emitASM(new std::string("add"), new std::string(op2), new std::string(op1));
+					}
 				}
 				else
 				{
@@ -575,6 +639,12 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				//res := op1
 				tableItem *item = tableFind(*table, res, parent);
 				calcOffset(item, res, level - item->level, reguse);
+				if(item->type == REFERENCE)
+				{
+					//当前是引用
+					moveToRegs(res, regs, reguse);
+					res = "[" + res + "]";
+				}
 			}
 			else
 			{
@@ -615,8 +685,19 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				{
 					//op1是变量
 					tableItem *item = tableFind(*table, op1, parent);
+					if(item == NULL)
+					{
+						FILE *fstdout = fopen("CON", "w");
+						fprintf(fstdout, "Can not find the temp %s\n", op1.c_str());
+						return 1;
+					}
 					calcOffset(item, op1, level - item->level, reguse);
 					moveToRegs(op1, regs, reguse);
+					if (item->type == REFERENCE)
+					{
+						//op1是引用
+						emitASM(new std::string("mov"), &op1, new std::string("[" + op1 + "]"));
+					}
 				}
 			}
 
@@ -631,9 +712,9 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				//op2是个立即数或者常量
 				char _s[5], *s;
 				tableItem *item = tableFind(*table, op1, parent);
-				int _offset = 0; 
-					_offset = item->offset + atoi(op2.c_str()) * 4;	//获得数组元素的偏移
-					calcOffset(item, op1, level - item->level, reguse);
+				int _offset = item->offset + atoi(op2.c_str()) * 4;	//获得数组元素的偏移 
+				s = itoa(-_offset, _s, 10);
+				op2 = *new std::string(s);
 			}
 			else
 			{
@@ -641,18 +722,25 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				tableItem *item = tableFind(*table, op2, parent);
 				calcOffset(item, op2, level - item->level, reguse);
 				moveToRegs(op2, regs, reguse);
+				if(item->type == REFERENCE)
+				{
+					//op2是引用
+					emitASM(new std::string("mov"), &op2, new std::string("[" + op2 + "]"));
+				}
 				emitASM(new std::string("shl"), &op2, new std::string("2"));
 				char _s[5], *s;
 				item = tableFind(*table, op1, parent);
 				s = itoa(item->offset, _s, 10);
 				emitASM(new std::string("add"), &op2, new std::string(s));
 				emitASM(new std::string("neg"), &op2, NULL);
-				if (level == item->level)
+			}
+			tableItem *item = tableFind(*table, op1, parent);
+			if (level == item->level)
 				{
 					//数组为本层的局部变量
 					op1 = "[ebp+" + op2 + "]";
 				}
-				else
+			else
 				{
 					//数组为非局部变量
 					int cnt = level - item->level;
@@ -675,9 +763,8 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 					}
 					op1 = "[" + reg + "+" + op2 + "]";
 				}
-			}
 			moveToRegs(op1, regs, reguse);
-			tableItem *item = tableFind(*table, res, parent);
+			item = tableFind(*table, res, parent);
 			if (item == NULL)
 			{
 				//res是临时变量
@@ -686,6 +773,12 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			else
 			{
 				calcOffset(item, res, level - item->level, reguse);
+				if(item->type == REFERENCE)
+				{
+					//res是引用
+					moveToRegs(res, regs, reguse);
+					res = "[" + res + "]";
+				}
 				emitASM(new std::string("mov"), &res, &op1);
 			}
 		}
@@ -700,6 +793,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 					tableItem *item = tableFind(*table, res, parent);
 					calcOffset(item, res, level - item->level, reguse);
 					moveToRegs(res, regs, reguse);
+					if(item->type == REFERENCE)
+					{
+						//res是引用
+						res = "[" + res + "]";
+					}
 				}
 			}
 			if (op1.c_str()[0] < '0' || op1.c_str()[0] > '9')
@@ -710,6 +808,12 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 					//op1不在寄存器中且op1不在常量池中
 					tableItem *item = tableFind(*table, op1, parent);
 					calcOffset(item, op1, level - item->level, reguse);
+					if(item->type == REFERENCE)
+					{
+						//op1是引用
+						moveToRegs(op1, regs, reguse);
+						op1 = "[" + op1 + "]";
+					}
 				}
 			}
 			emitASM(new std::string("cmp"), &res, &op1);
@@ -732,11 +836,28 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			else
 			{
 				//res是个标识符
-				if (!findInRegs(res, regs) && !findInConst(res,constPool))
+				if(op1 != "")
 				{
-					//res不在寄存器中
+					//传引用
 					tableItem *item = tableFind(*table, res, parent);
-					calcOffset(item, res, level - item->level, reguse);
+					if(item->type == REFERENCE)
+					{
+						//res本身就是引用
+						calcOffset(item, res, level - item->level, reguse);
+					}else
+					{
+						//计算res的地址
+						calcOffset(item, res, level - item->level);
+					}
+				}else
+				{
+					//传值
+					if (!findInRegs(res, regs) && !findInConst(res,constPool))
+					{
+						//res不在寄存器中
+						tableItem *item = tableFind(*table, res, parent);
+						calcOffset(item, res, level - item->level, reguse);
+					}					
 				}
 			}
 			emitASM(new std::string("push"), &res, NULL);
@@ -913,6 +1034,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 						tableItem *item = tableFind(*table, op1, parent);
 						calcOffset(item, op1, level - item->level, reguse);
 						moveToRegs(op1, regs, reguse);
+						if(item->type == REFERENCE)
+						{
+							//op1是引用
+							op1 = "[" + op1 + "]";
+						}
 						reguse = (reguse + 3) % 4;
 					}
 				}
@@ -932,6 +1058,10 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 						tableItem *item = tableFind(*table, op1, parent);
 						calcOffset(item, op1, level - item->level, reguse);
 						moveToRegs(op1, regs, reguse);
+						if(item->type == REFERENCE)
+						{
+							op1 = "[" + op1 + "]";
+						}
 						reguse = (reguse + 3) % 4;
 					}
 				}

@@ -106,8 +106,7 @@ std::string* IREmit(AST_node root)
 	else if (root->ast_type == PROGRAM)
 	{
 		for (std::vector<AST_node>::iterator i = root->children->begin();
-		i != root->children->end(); i++
-			)
+		i != root->children->end(); i++)
 		{
 			if ((*i)->ast_type == STATS)
 			{
@@ -359,13 +358,13 @@ std::string* forStatEmit(AST_node t)
 		}
 		else if ((*i)->lex_symbol == DOWNTO)
 		{
-			relop = "jle";
+			relop = "jl";
 			stepOp = "dec";
 			putLable(conditionLable);
 		}
 		else if ((*i)->lex_symbol == TO)
 		{
-			relop = "jge";
+			relop = "jg";
 			stepOp = "inc";
 			putLable(conditionLable);		//将label放在这儿是因为输入输出会修改EAX的值，
 											//即可能修改上界或者下界的值，从而导致循环次数不对
@@ -463,6 +462,18 @@ std::string* callStatEmit(AST_node t)
 	for (std::vector<std::string*>::reverse_iterator j = args.rbegin();
 	j != args.rend(); j++)
 	{
+		if((*j)->c_str()[0] > '9' || (*j)->c_str()[0] < '0')
+		{
+			//j是标识符
+			tableItem *item = tableFind(*(t->symTable), *name, t->parent);	//函数的符号表项
+			if(tableFind(*(item->table),*(*j),NULL)->type == REFERENCE)
+			{
+				//该参数是传引用
+				emit("param", *j, new std::string("reference"), NULL);
+				continue;
+			}
+		}
+		//j是数或者传值的参数	
 		emit("param", *j, NULL, NULL);
 	}
 	std::string *n = NULL;

@@ -76,6 +76,10 @@ int main()
 {
 	AST root = makeNode(ROOT,NULL);
 	*(root->val.ident) = "main";
+//	printf("Please Enter the filepath:\n");
+//	char s[100];
+//	scanf("%s", s);
+//	freopen(s, "r", stdin);
 	freopen("in_IR.txt", "r", stdin);
 	freopen("out.txt", "w", stdout);
 
