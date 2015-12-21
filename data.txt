@@ -1,0 +1,1 @@
+_string0  db  "i is:",10,0

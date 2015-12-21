@@ -1,29 +1,29 @@
-const pi = 3, e = 2,target = '3',c = '5';
-
-var left,right,mid,n:integer;name:array[30] of char;arr:array[26] of char;
-	a,b:array[50] of integer;ans,i:integer;
-
-function search(left,right:integer;target:char):integer;
-const c = '5';
-var i:integer;
-	procedure s(left,right:integer;target:char);
+var i,j:integer;
+	arr:array[10] of integer;
+	
+procedure assign1(var i:integer);
+	procedure assign2(var i:integer);
+		procedure assign3(var i:integer);
+			procedure assign4(var i:integer);
+				procedure assign5(var i:integer);
+				var j : integer;
+				begin
+					write("i is:",i);					
+				end;
+			begin
+				assign5(i);
+			end;
+		begin
+			assign4(i);
+		end;
 	begin
-		write("s:");
-		write("left:",left);
-		write("right:",right);
-		write("target:",target)
+		assign3(i);
 	end;
 begin
-	s(1,2,c);
-	write("search:");
-	write("left:",left);
-	write("right:",right);
-	write("target:",target)
+	assign2(i);
 end;
 
 begin
-	left:=0;
-	write("main:");
-	write("left:",left);
-	search(4,2,target);
+	i := 4;
+	assign1(i);
 end.

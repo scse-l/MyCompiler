@@ -1,0 +1,14 @@
+i:8
+j:12
+arr:16
+
+assign1:0
+
+assign2:0
+
+assign3:0
+
+assign4:0
+
+assign5:0
+j:8
