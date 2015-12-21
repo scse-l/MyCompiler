@@ -519,36 +519,70 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 						if (op1 == "eax")
 						{
 							regs[EAX] = res;
+							//避免结果被下一次计算结果覆盖
+							if(reguse == EAX)
+							{
+								reguse++;
+							}
 						}else if (op1 == "ebx")
 						{
 							regs[EBX] = res;
+							if (reguse == EBX)
+							{
+								reguse++;
+							}
 						}
 						else if (op1 == "ecx")
 						{
 							regs[ECX] = res;
+							if (reguse == ECX)
+							{
+								reguse++;
+							}
 						}
 						else if (op1 == "edx")
 						{
 							regs[EDX] = res;
+							if (reguse == EDX)
+							{
+								reguse = EAX;
+							}
 						}
+						
 					}
 					else
 					{
 						if (op2 == "eax")
 						{
 							regs[EAX] = res;
+							if (reguse == EAX)
+							{
+								reguse++;
+							}
 						}
 						else if (op2 == "ebx")
 						{
 							regs[EBX] = res;
+							if (reguse == EBX)
+							{
+								reguse++;
+							}
 						}
 						else if (op2 == "ecx")
 						{
 							regs[ECX] = res;
+							if (reguse == ECX)
+							{
+								reguse++;
+							}
 						}
 						else if (op2 == "edx")
 						{
 							regs[EDX] = res;
+							if (reguse == EDX)
+							{
+								reguse = EAX;
+							}
 						}
 
 					}
@@ -984,6 +1018,13 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			//含义：将读入数据存到addr中
 			tableItem *item = tableFind(*table, res, parent);
 			calcOffset(item, res, level - item->level, reguse);
+			if (item->type == REFERENCE)
+			{
+				//res是引用
+				moveToRegs(res, regs, reguse);
+				res = "[" + res + "]";
+				reguse = (reguse + 3) % 4;
+			}
 			switch (reguse)
 			{
 			case EAX:emitASM(new std::string("lea"), new std::string("eax"), &res); res = "eax"; break;

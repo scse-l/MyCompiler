@@ -160,7 +160,8 @@ int readStatCheck(AST_node t)
 			{
 				return 1;
 			}
-			if ((*i)->tableItem->type != VAR || (*i)->tableItem->attribute == ARRAY)
+			if ((*i)->tableItem->type != VAR && (*i)->tableItem->type != REFERENCE
+				|| (*i)->tableItem->attribute == ARRAY)
 			{
 				error((*i)->lineNo, "Can not use a const or an array as arg");
 			}

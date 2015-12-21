@@ -146,6 +146,8 @@ void recovery(int n, ...)
 		{
 			//在错误恢复时遇到文件末尾
 			error("File is incompleted");
+			freopen("CON", "w", stdout);
+			errorRep();
 			exit(1);
 		}
 		//不是错误恢复集合中的token
