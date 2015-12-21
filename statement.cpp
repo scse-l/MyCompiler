@@ -27,7 +27,10 @@ AST_node statement(AST_node parent)
 			//赋值语句
 			stat_assign(t);
 		}
-		else if (symbol == LPARENT || symbol == SEMICOLON)
+		else if (symbol == LPARENT || symbol == SEMICOLON 
+			|| symbol == END	//过程调用语句在end前,可以没有分号
+			)
+			
 		{
 			//过程调用语句
 			stat_procedure(t);

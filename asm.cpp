@@ -5,6 +5,7 @@
 #include "asm.h"
 #include <map>
 #include <cstdio>
+#include <stack>
 
 #pragma warning(disable:4996)
 
@@ -259,7 +260,8 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 	std::map<std::string, int> constPool;		//用于存放常量
 	std::map<std::string, std::vector<int>> varPosRecord;		//用于记录变量当前所在的位置
 	std::string regs[4];						//用于记录当前寄存器中保存的临时变量名
-	int reguse = 0;
+	int reguse = 0;								//用于记录当前可用的寄存器
+	std::stack<int> regStack;					//用于在保存寄存器时同时保存reguse
 	bool saved = false;							//用于记录函数过程调用时寄存器是否被保存
 
 	while (fgets(Q_ins, 1000, stdin) != NULL)
@@ -687,17 +689,24 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				{
 					//op2是个立即数
 					char _s[5],*s;
-					int _offset = tableFind(*table, res, parent)->offset + atoi(op2.c_str()) * 4;	//获得数组元素的偏移
+					tableItem *item = tableFind(*table, res, parent);
+					calcOffset(item, res, level - item->level, reguse);
+					moveToRegs(res, regs, reguse);
+					int _offset = item->offset + atoi(op2.c_str()) * 4;	//获得数组元素的偏移
 					s = itoa(_offset, _s, 10);
-					res = *new std::string(s);
-					res = "[ebp-" + res + "]";
+					res = "[" + res + "-" + *new std::string(s) + "]";
 				}
-				else if(!findInConst(op2,constPool))
+				else
 				{
-					//op2是变量
-					tableItem *item = tableFind(*table, op2, parent);
-					calcOffset(item, op2, level - item->level, reguse);
-					moveToRegs(op2, regs, reguse);
+					//op2是变量、常量或者寄存器
+					if (!findInConst(op2, constPool) && !findInRegs(op2, regs))
+					{
+						//op2是变量
+						tableItem *item = tableFind(*table, op2, parent);
+						if (item == NULL)
+						calcOffset(item, op2, level - item->level, reguse);
+						moveToRegs(op2, regs, reguse);
+					}
 					emitASM(new std::string("shl"), &op2, new std::string("2"));
 					char _s[5], *s;
 					s = itoa(tableFind(*table, res, parent)->offset, _s, 10);
@@ -753,13 +762,18 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			else
 			{
 				//op2是变量
-				tableItem *item = tableFind(*table, op2, parent);
-				calcOffset(item, op2, level - item->level, reguse);
-				moveToRegs(op2, regs, reguse);
-				if(item->type == REFERENCE)
+				tableItem *item = NULL;
+				if (!findInRegs(op2, regs))
 				{
-					//op2是引用
-					emitASM(new std::string("mov"), &op2, new std::string("[" + op2 + "]"));
+					//op2不是临时变量
+					item = tableFind(*table, op2, parent);
+					calcOffset(item, op2, level - item->level, reguse);
+					moveToRegs(op2, regs, reguse);
+					if(item->type == REFERENCE)
+					{
+						//op2是引用
+						emitASM(new std::string("mov"), &op2, new std::string("[" + op2 + "]"));
+					}
 				}
 				emitASM(new std::string("shl"), &op2, new std::string("2"));
 				char _s[5], *s;
@@ -908,6 +922,7 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				emitASM(new std::string("push"), new std::string("ebx"), NULL);
 				emitASM(new std::string("push"), new std::string("ecx"), NULL);
 				emitASM(new std::string("push"), new std::string("edx"), NULL);
+				regStack.push(reguse);
 				saved = true;
 			}
 
@@ -974,6 +989,11 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 				{
 					//res是个临时变量
 					regs[EAX] = res;
+					//避免计算结果被覆盖
+					if (reguse == EAX)
+					{
+						reguse++;
+					}
 				}
 				else
 				{
@@ -986,6 +1006,7 @@ int asmMaker(AST_node cur, AST_node parent, int level)
 			char _s[5], *s;
 			s = itoa(_offset, _s, 10);
 			emitASM(new std::string("add"), new std::string("esp"), new std::string(s));
+			
 			emitASM(new std::string("pop"), new std::string("edx"), NULL);
 			emitASM(new std::string("pop"), new std::string("ecx"), NULL);
 			emitASM(new std::string("pop"), new std::string("ebx"), NULL);
